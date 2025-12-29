@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/google/uuid"
 	"github.com/luongtruong20201/bookmark-management/internal/api"
 	"github.com/stretchr/testify/assert"
 )
@@ -13,8 +14,11 @@ import (
 func TestHealthcheckEndPoint(t *testing.T) {
 	t.Parallel()
 
-	cfg, err := api.NewConfig()
-	assert.Nil(t, err)
+	cfg := &api.Config{
+		AppPort:     "8080",
+		ServiceName: "bookmark-api",
+		InstanceId:  uuid.New().String(),
+	}
 
 	testCases := []struct {
 		name            string

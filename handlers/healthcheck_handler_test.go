@@ -31,7 +31,7 @@ func TestHealthcheckHandler_Check(t *testing.T) {
 				return mockSvc
 			},
 			expectedStatus: http.StatusOK,
-			expectedBody:   `{"message":"OK","service_name":"bookmark_service","instance_id":"instance_id"}`,
+			expectedBody:   `{"instance_id":"instance_id","message":"OK","service_name":"bookmark_service"}`,
 		},
 	}
 
@@ -48,7 +48,7 @@ func TestHealthcheckHandler_Check(t *testing.T) {
 			handler.Check(ctx)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
-			assert.Equal(t, rec.Body.String(), `{"instance_id":"instance_id","message":"OK","service_name":"bookmark_service"}`)
+			assert.Equal(t, rec.Body.String(), tc.expectedBody)
 		})
 	}
 }
