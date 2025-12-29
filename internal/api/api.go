@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,11 +16,13 @@ type Engine interface {
 
 type api struct {
 	app *gin.Engine
+	cfg *Config
 }
 
-func New() Engine {
+func New(cfg *Config) Engine {
 	a := &api{
 		app: gin.New(),
+		cfg: cfg,
 	}
 
 	a.registerEndPoint()
@@ -27,7 +30,7 @@ func New() Engine {
 }
 
 func (a *api) Start() error {
-	return a.app.Run(":8080")
+	return a.app.Run(fmt.Sprintf(":%s", a.cfg.AppPort))
 }
 
 func (a *api) ServeHTTP(w http.ResponseWriter, r *http.Request) {
