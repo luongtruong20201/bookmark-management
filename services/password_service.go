@@ -25,6 +25,8 @@ func NewPassword() Password {
 	return &passwordService{}
 }
 
+// GeneratePassword generates a random password of the specified length using
+// alphanumeric characters. Returns an error if random number generation fails.
 func (s *passwordService) GeneratePassword() (string, error) {
 	var sb bytes.Buffer
 
