@@ -1,7 +1,6 @@
 package endpoint
 
 import (
-	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,8 +14,8 @@ func TestHealthcheckEndPoint(t *testing.T) {
 
 	cfg := &api.Config{
 		AppPort:     "8080",
-		ServiceName: "bookmark-api",
-		InstanceId:  "111-222-333",
+		ServiceName: "12345",
+		InstanceId:  "12345",
 	}
 
 	testCases := []struct {
@@ -34,7 +33,7 @@ func TestHealthcheckEndPoint(t *testing.T) {
 				return rec
 			},
 			expectedStatus:  http.StatusOK,
-			expectedMessage: "OK",
+			expectedMessage: "{\"instance_id\":\"12345\",\"message\":\"OK\",\"service_name\":\"12345\"}",
 		},
 	}
 
@@ -44,11 +43,8 @@ func TestHealthcheckEndPoint(t *testing.T) {
 			rec := tc.setupTestHTTP(api.New(cfg))
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
-			resp := map[string]any{}
 
-			err := json.Unmarshal(rec.Body.Bytes(), &resp)
-			assert.NoError(t, err)
-			assert.Equal(t, tc.expectedMessage, "OK")
+			assert.Equal(t, tc.expectedMessage, rec.Body.String())
 		})
 	}
 }
