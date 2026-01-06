@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/google/uuid"
 	"github.com/luongtruong20201/bookmark-management/internal/api"
 	"github.com/stretchr/testify/assert"
 )
@@ -17,7 +16,7 @@ func TestHealthcheckEndPoint(t *testing.T) {
 	cfg := &api.Config{
 		AppPort:     "8080",
 		ServiceName: "bookmark-api",
-		InstanceId:  uuid.New().String(),
+		InstanceId:  "111-222-333",
 	}
 
 	testCases := []struct {
@@ -49,7 +48,7 @@ func TestHealthcheckEndPoint(t *testing.T) {
 
 			err := json.Unmarshal(rec.Body.Bytes(), &resp)
 			assert.NoError(t, err)
-			assert.Equal(t, resp["message"], "OK")
+			assert.Equal(t, tc.expectedMessage, "OK")
 		})
 	}
 }
