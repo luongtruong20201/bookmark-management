@@ -9,6 +9,8 @@ import (
 	service "github.com/luongtruong20201/bookmark-management/internal/services"
 )
 
+// Engine defines the interface for the API engine.
+// It provides methods to start the server and serve HTTP requests.
 type Engine interface {
 	Start() error
 	http.Handler

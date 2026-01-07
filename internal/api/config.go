@@ -5,6 +5,7 @@ import (
 	"github.com/kelseyhightower/envconfig"
 )
 
+// Config holds the application configuration loaded from environment variables.
 type Config struct {
 	AppPort     string `default:"8080" envconfig:"APP_PORT"`
 	ServiceName string `default:"bookmark-api" envconfig:"SERVICE_NAME"`

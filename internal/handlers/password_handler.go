@@ -11,6 +11,8 @@ type passwordHandler struct {
 	svc service.Password
 }
 
+// Password defines the interface for password handlers.
+// It provides methods to generate random passwords.
 type Password interface {
 	GenPass(*gin.Context)
 }
