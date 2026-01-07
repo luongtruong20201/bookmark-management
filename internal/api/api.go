@@ -5,8 +5,8 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	handler "github.com/luongtruong20201/bookmark-management/handlers"
-	service "github.com/luongtruong20201/bookmark-management/services"
+	handler "github.com/luongtruong20201/bookmark-management/internal/handlers"
+	service "github.com/luongtruong20201/bookmark-management/internal/services"
 )
 
 type Engine interface {

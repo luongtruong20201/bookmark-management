@@ -4,9 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	service "github.com/luongtruong20201/bookmark-management/services"
+	service "github.com/luongtruong20201/bookmark-management/internal/services"
 )
 
+// Healthcheck defines the interface for healthcheck handlers.
+// It provides methods to check the health status of the service.
 type Healthcheck interface {
 	Check(*gin.Context)
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	service "github.com/luongtruong20201/bookmark-management/services"
+	service "github.com/luongtruong20201/bookmark-management/internal/services"
 )
 
 type passwordHandler struct {

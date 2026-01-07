@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/gin-gonic/gin"
-	"github.com/luongtruong20201/bookmark-management/services/mocks"
+	"github.com/luongtruong20201/bookmark-management/internal/services/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
