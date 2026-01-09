@@ -1,0 +1,94 @@
+basePath: /
+definitions:
+  handler.urlShortenReq:
+    properties:
+      exp:
+        example: 3600
+        maximum: 604800
+        minimum: 0
+        type: integer
+      url:
+        example: https://fb.com
+        type: string
+    required:
+    - exp
+    - url
+    type: object
+  handler.urlShortenRes:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API documentation for bookmark service
+  title: Bookmark API
+  version: 1.0.0
+paths:
+  /gen-pass:
+    get:
+      description: Generate a random alphanumeric password
+      responses:
+        "200":
+          description: Generated password
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: Generate password
+      tags:
+      - password
+  /health-check:
+    get:
+      description: Check the health status of the service
+      responses:
+        "200":
+          description: Health status response
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health check
+      tags:
+      - health
+  /links/shorten:
+    post:
+      consumes:
+      - application/json
+      description: Create a shortened URL with an optional expiration time (in seconds,
+        max 604800)
+      parameters:
+      - description: URL shortening request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.urlShortenReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully shortened URL
+          schema:
+            $ref: '#/definitions/handler.urlShortenRes'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Shorten URL
+      tags:
+      - url
+swagger: "2.0"

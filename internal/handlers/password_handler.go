@@ -26,6 +26,12 @@ func NewPassword(svc service.Password) Password {
 
 // GenPass handles the password generation endpoint request. It generates a new password
 // using the password service and returns it as a plain text response.
+// @Summary Generate password
+// @Description Generate a random alphanumeric password
+// @Tags password
+// @Success 200 {string} string "Generated password"
+// @Failure 500 {string} string "Internal server error"
+// @Router /gen-pass [get]
 func (h *passwordHandler) GenPass(c *gin.Context) {
 	pass, err := h.svc.GeneratePassword()
 	if err != nil {
