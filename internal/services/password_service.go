@@ -1,13 +1,8 @@
 package service
 
-import (
-	"bytes"
-	"crypto/rand"
-	"math/big"
-)
+import "github.com/luongtruong20201/bookmark-management/pkg/stringutils"
 
 const (
-	charset    = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
 	passLength = 10
 )
 
@@ -28,15 +23,5 @@ func NewPassword() Password {
 // GeneratePassword generates a random password of the specified length using
 // alphanumeric characters. Returns an error if random number generation fails.
 func (s *passwordService) GeneratePassword() (string, error) {
-	var sb bytes.Buffer
-
-	for range passLength {
-		i, err := rand.Int(rand.Reader, big.NewInt(int64(len(charset))))
-		if err != nil {
-			return "", err
-		}
-		sb.WriteByte(charset[i.Int64()])
-	}
-
-	return sb.String(), nil
+	return stringutils.GenerateCode(passLength)
 }

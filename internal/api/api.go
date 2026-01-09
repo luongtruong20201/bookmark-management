@@ -5,8 +5,14 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/luongtruong20201/bookmark-management/docs"
 	handler "github.com/luongtruong20201/bookmark-management/internal/handlers"
+	repository "github.com/luongtruong20201/bookmark-management/internal/repositories"
 	service "github.com/luongtruong20201/bookmark-management/internal/services"
+	"github.com/luongtruong20201/bookmark-management/pkg/stringutils"
+	"github.com/redis/go-redis/v9"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 // Engine defines the interface for the API engine.
@@ -17,16 +23,18 @@ type Engine interface {
 }
 
 type api struct {
-	app *gin.Engine
-	cfg *Config
+	redis *redis.Client
+	app   *gin.Engine
+	cfg   *Config
 }
 
 // New creates a new API engine instance with the provided configuration.
 // It initializes the Gin router and registers all endpoints.
-func New(cfg *Config) Engine {
+func New(cfg *Config, redis *redis.Client) Engine {
 	a := &api{
-		app: gin.New(),
-		cfg: cfg,
+		redis: redis,
+		app:   gin.New(),
+		cfg:   cfg,
 	}
 
 	a.registerEndPoint()
@@ -54,6 +62,18 @@ func (a *api) registerEndPoint() {
 	healthcheckSvc := service.NewHealthcheck(a.cfg.ServiceName, a.cfg.InstanceId)
 	healthcheckHandler := handler.NewHealthcheck(healthcheckSvc)
 
+	keyGen := stringutils.NewKeyGen()
+	shortenRepo := repository.NewURLStorage(a.redis)
+	shortenSvc := service.NewShortenURL(keyGen, shortenRepo)
+	shortenHandler := handler.NewShortenURL(shortenSvc)
+
 	a.app.GET("/gen-pass", passHandler.GenPass)
 	a.app.GET("/health-check", healthcheckHandler.Check)
+
+	v1 := a.app.Group("/v1")
+	{
+		v1.POST("/links/shorten", shortenHandler.ShortenURL)
+	}
+
+	a.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 }

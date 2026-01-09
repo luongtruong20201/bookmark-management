@@ -26,6 +26,11 @@ func NewHealthcheck(svc service.Healthcheck) Healthcheck {
 
 // Check handles the healthcheck endpoint request. It calls the healthcheck service
 // and returns a JSON response with the status message, service name, and instance ID.
+// @Summary Health check
+// @Description Check the health status of the service
+// @Tags health
+// @Success 200 {object} map[string]string "Health status response"
+// @Router /health-check [get]
 func (h *healthcheckHandler) Check(c *gin.Context) {
 	message, serviceName, instanceId := h.healthcheckSvc.Check()
 	c.JSON(http.StatusOK, gin.H{

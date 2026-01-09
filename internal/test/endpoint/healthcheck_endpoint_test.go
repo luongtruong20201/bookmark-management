@@ -40,10 +40,9 @@ func TestHealthcheckEndPoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			rec := tc.setupTestHTTP(api.New(cfg))
+			rec := tc.setupTestHTTP(api.New(cfg, nil))
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
-
 			assert.Equal(t, tc.expectedMessage, rec.Body.String())
 		})
 	}
