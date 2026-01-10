@@ -1,6 +1,8 @@
 package redis
 
-import "github.com/kelseyhightower/envconfig"
+import (
+	"github.com/kelseyhightower/envconfig"
+)
 
 // config holds the Redis connection configuration loaded from environment variables.
 type config struct {
