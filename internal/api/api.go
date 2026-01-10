@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/luongtruong20201/bookmark-management/docs"
 	_ "github.com/luongtruong20201/bookmark-management/docs"
 	handler "github.com/luongtruong20201/bookmark-management/internal/handlers"
 	repository "github.com/luongtruong20201/bookmark-management/internal/repositories"
@@ -78,4 +79,6 @@ func (a *api) registerEndPoint() {
 	}
 
 	a.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	docs.SwaggerInfo.Host = a.cfg.AppHostname
 }
