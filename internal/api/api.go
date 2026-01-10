@@ -59,7 +59,8 @@ func (a *api) registerEndPoint() {
 	passSvc := service.NewPassword()
 	passHandler := handler.NewPassword(passSvc)
 
-	healthcheckSvc := service.NewHealthcheck(a.cfg.ServiceName, a.cfg.InstanceId)
+	healthCheckRepo := repository.NewHealthCheck(a.redis)
+	healthcheckSvc := service.NewHealthcheck(a.cfg.ServiceName, a.cfg.InstanceId, healthCheckRepo)
 	healthcheckHandler := handler.NewHealthcheck(healthcheckSvc)
 
 	keyGen := stringutils.NewKeyGen()
@@ -73,6 +74,7 @@ func (a *api) registerEndPoint() {
 	v1 := a.app.Group("/v1")
 	{
 		v1.POST("/links/shorten", shortenHandler.ShortenURL)
+		v1.GET("/links/redirect/:code", shortenHandler.GetURL)
 	}
 
 	a.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

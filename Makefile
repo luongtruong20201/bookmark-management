@@ -25,3 +25,7 @@ swagger:
 .PHONY: redis
 redis:
 	docker run  --name redis -p 6379:6379 redis:latest
+
+.PHONY: docker-build
+docker-build:
+	docker build -f Dockerfile .
