@@ -91,4 +91,35 @@ paths:
       summary: Shorten URL
       tags:
       - url
+  /v1/links/{code}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve and redirect to the original URL using the shortened code
+      parameters:
+      - description: Short URL code
+        in: path
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "301":
+          description: Permanent redirect to original URL
+        "400":
+          description: Code not found or invalid
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get original URL by code
+      tags:
+      - url
 swagger: "2.0"

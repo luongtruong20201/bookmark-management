@@ -12,7 +12,8 @@ func TestPasswordService_GeneratePassword(t *testing.T) {
 		expectedLen int
 		expectedErr error
 	}{
-		{name: "normal case",
+		{
+			name:        "normal case",
 			expectedLen: 10,
 			expectedErr: nil,
 		},

@@ -32,7 +32,7 @@ func NewHealthcheck(svc service.Healthcheck) Healthcheck {
 // @Success 200 {object} map[string]string "Health status response"
 // @Router /health-check [get]
 func (h *healthcheckHandler) Check(c *gin.Context) {
-	message, serviceName, instanceId := h.healthcheckSvc.Check()
+	message, serviceName, instanceId := h.healthcheckSvc.Check(c)
 	c.JSON(http.StatusOK, gin.H{
 		"message":      message,
 		"service_name": serviceName,

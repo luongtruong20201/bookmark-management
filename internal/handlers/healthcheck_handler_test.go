@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,7 +17,7 @@ func TestHealthcheckHandler_Check(t *testing.T) {
 	testCases := []struct {
 		name           string
 		setupRequest   func(*gin.Context)
-		setupMockSvc   func(*testing.T) *mocks.Healthcheck
+		setupMockSvc   func(*testing.T, context.Context) *mocks.Healthcheck
 		expectedStatus int
 		expectedBody   string
 	}{
@@ -25,13 +26,26 @@ func TestHealthcheckHandler_Check(t *testing.T) {
 			setupRequest: func(ctx *gin.Context) {
 				ctx.Request = httptest.NewRequest(http.MethodGet, "/health-check", nil)
 			},
-			setupMockSvc: func(t *testing.T) *mocks.Healthcheck {
+			setupMockSvc: func(t *testing.T, ctx context.Context) *mocks.Healthcheck {
 				mockSvc := mocks.NewHealthcheck(t)
-				mockSvc.On("Check").Return("OK", "bookmark_service", "instance_id")
+				mockSvc.On("Check", ctx).Return("OK", "bookmark_service", "instance_id")
 				return mockSvc
 			},
 			expectedStatus: http.StatusOK,
 			expectedBody:   `{"instance_id":"instance_id","message":"OK","service_name":"bookmark_service"}`,
+		},
+		{
+			name: "failed",
+			setupRequest: func(ctx *gin.Context) {
+				ctx.Request = httptest.NewRequest(http.MethodGet, "/health-check", nil)
+			},
+			setupMockSvc: func(t *testing.T, ctx context.Context) *mocks.Healthcheck {
+				mockSvc := mocks.NewHealthcheck(t)
+				mockSvc.On("Check", ctx).Return("NOT_OK", "bookmark_service", "instance_id")
+				return mockSvc
+			},
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"instance_id":"instance_id","message":"NOT_OK","service_name":"bookmark_service"}`,
 		},
 	}
 
@@ -42,7 +56,7 @@ func TestHealthcheckHandler_Check(t *testing.T) {
 			rec := httptest.NewRecorder()
 			ctx, _ := gin.CreateTestContext(rec)
 			tc.setupRequest(ctx)
-			svc := tc.setupMockSvc(t)
+			svc := tc.setupMockSvc(t, ctx)
 			handler := NewHealthcheck(svc)
 
 			handler.Check(ctx)

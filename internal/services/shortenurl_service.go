@@ -6,6 +6,7 @@ import (
 
 	repository "github.com/luongtruong20201/bookmark-management/internal/repositories"
 	"github.com/luongtruong20201/bookmark-management/pkg/stringutils"
+	"github.com/redis/go-redis/v9"
 )
 
 const (
@@ -16,6 +17,7 @@ const (
 var (
 	// ErrDuplicatedKey is returned when a generated code already exists in storage.
 	ErrDuplicatedKey = errors.New("duplicate key")
+	ErrCodeNotFound  = errors.New("code not found")
 )
 
 // ShortenURL defines the interface for shorten URL services.
@@ -24,6 +26,9 @@ var (
 //go:generate mockery --name ShortenURL --filename shorten_url.go
 type ShortenURL interface {
 	ShortenURL(context.Context, string, int) (string, error)
+	// GetURL retrieves the original URL associated with the given short code.
+	// It returns the original URL if found, or ErrCodeNotFound if the code does not exist.
+	GetURL(context.Context, string) (string, error)
 }
 
 type shortenURL struct {
@@ -59,4 +64,16 @@ func (s *shortenURL) ShortenURL(ctx context.Context, url string, expire int) (st
 	}
 
 	return code, nil
+}
+
+// GetURL retrieves the original URL associated with the given short code from the repository.
+// It returns the original URL if found, or ErrCodeNotFound if the code does not exist in storage.
+// Any other error from the repository is returned as-is.
+func (s *shortenURL) GetURL(ctx context.Context, code string) (string, error) {
+	url, err := s.repository.Get(ctx, code)
+	if errors.Is(err, redis.Nil) {
+		return "", ErrCodeNotFound
+	}
+
+	return url, err
 }

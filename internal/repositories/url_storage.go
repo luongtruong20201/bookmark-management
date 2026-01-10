@@ -19,7 +19,10 @@ const (
 type URLStorage interface {
 	// Store(context.Context, string, string) error
 	StoreIfNotExists(context.Context, string, string, int) (bool, error)
-	// Get(context.Context, string) (string, error)
+	// Get retrieves the URL associated with the given key from storage.
+	// It returns the URL string if found, or redis.Nil error if the key does not exist.
+	// Any other error indicates a storage operation failure.
+	Get(context.Context, string) (string, error)
 	// Exists(context.Context, string) (bool, error)
 }
 
@@ -44,4 +47,11 @@ func (s *urlStorage) StoreIfNotExists(ctx context.Context, code, url string, exp
 	}
 
 	return s.client.SetNX(ctx, code, url, duration).Result()
+}
+
+// Get retrieves the URL associated with the given key from Redis storage.
+// It returns the URL string if the key exists, or redis.Nil error if the key is not found.
+// Any other error indicates a Redis operation failure.
+func (s *urlStorage) Get(ctx context.Context, key string) (string, error) {
+	return s.client.Get(ctx, key).Result()
 }
