@@ -1,7 +1,18 @@
-IMG_NAME=luongtruong20201/bookmark_service
 GIT_TAG := $(shell git describe --tags --exact-match 2>/dev/null)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
+
 COVERAGE_FOLDER=./coverage
+
+
+ifeq ($(BRANCH),main)
+	IMG_TAG := dev
+endif
+
+ifneq ($(GIT_TAG),)
+	IMG_TAG := $(GIT_TAG)
+endif
+
+export IMG_TAG
 
 
 ifeq ($(BRANCH),main)
