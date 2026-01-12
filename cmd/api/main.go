@@ -4,6 +4,7 @@ import (
 	"github.com/luongtruong20201/bookmark-management/internal/api"
 	"github.com/luongtruong20201/bookmark-management/pkg/logger"
 	"github.com/luongtruong20201/bookmark-management/pkg/redis"
+	sqldb "github.com/luongtruong20201/bookmark-management/pkg/sql"
 )
 
 //	@title			Bookmark API
@@ -27,6 +28,11 @@ func main() {
 		panic(err)
 	}
 
-	app := api.New(cfg, redis)
+	db, err := sqldb.NewClient("")
+	if err != nil {
+		panic(err)
+	}
+
+	app := api.New(cfg, redis, db)
 	app.Start()
 }

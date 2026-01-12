@@ -9,6 +9,20 @@ services:
     volumes:
       - redis_data:/data
 
+  postgres:
+    image: postgres:alpine
+    container_name: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - /postgres_data:/var/lib/postgresql/data:z
+    networks:
+      - bookmark_network
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=bookmark_service
+
   bookmark_service:
     container_name: bookmark_service
     image: bookmark_service:dev

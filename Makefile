@@ -17,7 +17,7 @@ run: swagger
 
 .PHONY: test
 test:
-	go test ./... -coverprofile=coverage.tmp -covermode=atomic -coverpkg=./... -p 1
+	CGO_ENABLED=1 go test ./... -coverprofile=coverage.tmp -covermode=atomic -coverpkg=./... -p 1
 	grep -vE "$(COVERAGE_EXCLUDE)" coverage.tmp > coverage.out
 	go tool cover -html=coverage.out -o coverage.html
 	@total=$$(go tool cover -func=coverage.out | grep total: | awk '{print $$3}' | sed 's/%//'); \
@@ -66,3 +66,8 @@ docker-test:
 	else \
 		echo "Coverage ($$total%) meets threshold ($(COVERAGE_THRESHOLD)%)"; \
 	fi
+
+.PHONY: generate-rsa-key
+generate-rsa-key:
+	openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
+	openssl rsa -pubout -in private.pem -out public.pem
