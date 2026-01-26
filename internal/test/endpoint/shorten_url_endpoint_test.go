@@ -100,7 +100,7 @@ func TestShortenURLEndpoint_ShortenURL(t *testing.T) {
 			t.Parallel()
 
 			redis := redisPkg.InitMockRedis(t)
-			app := api.New(cfg, redis)
+			app := api.New(cfg, redis, nil)
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
@@ -196,7 +196,7 @@ func TestShortenURLEndpoint_GetURL(t *testing.T) {
 			t.Parallel()
 
 			ctx := t.Context()
-			app := api.New(cfg, tc.setupMockRedis(t, ctx))
+			app := api.New(cfg, tc.setupMockRedis(t, ctx), nil)
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
