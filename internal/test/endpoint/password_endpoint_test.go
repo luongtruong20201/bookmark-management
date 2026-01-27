@@ -33,7 +33,7 @@ func TestPasswordEndpoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			app := api.New(&api.Config{}, nil)
+			app := api.New(&api.Config{}, nil, nil)
 			rec := tc.setupTestHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, http.StatusOK)
