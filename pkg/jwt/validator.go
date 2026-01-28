@@ -15,6 +15,8 @@ var (
 
 // JWTValidator defines the interface for JWT token validation.
 // It provides methods to verify and parse JWT tokens using RSA public keys.
+//
+//go:generate mockery --name JWTValidator --filename jwt_validator.go
 type JWTValidator interface {
 	ValidateToken(string) (jwt.MapClaims, error)
 }

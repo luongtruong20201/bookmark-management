@@ -69,7 +69,7 @@ func TestShortenURLEndpoint_ShortenURL(t *testing.T) {
 			},
 			expectedStatus: http.StatusBadRequest,
 			verifyBody: func(t *testing.T, body map[string]any) {
-				assert.Equal(t, body["message"], "unprocessable")
+				assert.Equal(t, body["message"], "Input error")
 			},
 		},
 		{
@@ -90,7 +90,7 @@ func TestShortenURLEndpoint_ShortenURL(t *testing.T) {
 			},
 			expectedStatus: http.StatusBadRequest,
 			verifyBody: func(t *testing.T, body map[string]any) {
-				assert.Equal(t, body["message"], "unprocessable")
+				assert.Equal(t, body["message"], "Input Error")
 			},
 		},
 	}
@@ -100,7 +100,7 @@ func TestShortenURLEndpoint_ShortenURL(t *testing.T) {
 			t.Parallel()
 
 			redis := redisPkg.InitMockRedis(t)
-			app := api.New(cfg, redis, nil)
+			app := api.New(cfg, redis, nil, nil, nil)
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
@@ -196,7 +196,7 @@ func TestShortenURLEndpoint_GetURL(t *testing.T) {
 			t.Parallel()
 
 			ctx := t.Context()
-			app := api.New(cfg, tc.setupMockRedis(t, ctx), nil)
+			app := api.New(cfg, tc.setupMockRedis(t, ctx), nil, nil, nil)
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)

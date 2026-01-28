@@ -44,6 +44,126 @@ func (_m *User) CreateUser(_a0 context.Context, _a1 *model.User) (*model.User, e
 	return r0, r1
 }
 
+// GetUserByField provides a mock function with given fields: ctx, field, value
+func (_m *User) GetUserByField(ctx context.Context, field string, value string) (*model.User, error) {
+	ret := _m.Called(ctx, field, value)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByField")
+	}
+
+	var r0 *model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*model.User, error)); ok {
+		return rf(ctx, field, value)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) *model.User); ok {
+		r0 = rf(ctx, field, value)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, field, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUserByID provides a mock function with given fields: ctx, id
+func (_m *User) GetUserByID(ctx context.Context, id string) (*model.User, error) {
+	ret := _m.Called(ctx, id)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByID")
+	}
+
+	var r0 *model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.User, error)); ok {
+		return rf(ctx, id)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.User); ok {
+		r0 = rf(ctx, id)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, id)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUserByUsername provides a mock function with given fields: _a0, _a1
+func (_m *User) GetUserByUsername(_a0 context.Context, _a1 string) (*model.User, error) {
+	ret := _m.Called(_a0, _a1)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetUserByUsername")
+	}
+
+	var r0 *model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.User, error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) *model.User); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// UpdateUserProfile provides a mock function with given fields: ctx, id, displayName, email
+func (_m *User) UpdateUserProfile(ctx context.Context, id string, displayName string, email string) (*model.User, error) {
+	ret := _m.Called(ctx, id, displayName, email)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpdateUserProfile")
+	}
+
+	var r0 *model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) (*model.User, error)); ok {
+		return rf(ctx, id, displayName, email)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, string) *model.User); ok {
+		r0 = rf(ctx, id, displayName, email)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, string) error); ok {
+		r1 = rf(ctx, id, displayName, email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // NewUser creates a new instance of User. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewUser(t interface {

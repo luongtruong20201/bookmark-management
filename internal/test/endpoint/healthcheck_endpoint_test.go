@@ -63,7 +63,7 @@ func TestHealthcheckEndPoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			rec := tc.setupTestHTTP(api.New(cfg, tc.setupMockRedis(t), nil))
+			rec := tc.setupTestHTTP(api.New(cfg, tc.setupMockRedis(t), nil, nil, nil))
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
 			assert.Equal(t, tc.expectedMessage, rec.Body.String())

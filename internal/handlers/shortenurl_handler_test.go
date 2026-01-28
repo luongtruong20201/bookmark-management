@@ -45,7 +45,7 @@ func TestShortenURLHandler_ShortenURL(t *testing.T) {
 			},
 			expectedStatus: http.StatusBadRequest,
 			expectedResp: map[string]any{
-				"message": "unprocessable",
+				"message": "Input Error",
 			},
 		},
 		{

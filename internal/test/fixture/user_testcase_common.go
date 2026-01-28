@@ -1,22 +1,24 @@
+// Package fixture provides reusable database fixtures used across tests.
+// This file defines a common user dataset shared by repository and service tests.
 package fixture
 
 import (
 	model "github.com/luongtruong20201/bookmark-management/internal/models"
+	"github.com/luongtruong20201/bookmark-management/pkg/utils"
 	"gorm.io/gorm"
 )
 
 type UserCommonTestDB struct {
-	db *gorm.DB
+	base
 }
 
-func (f *UserCommonTestDB) SetupDB(db *gorm.DB) {
-	f.db = db
-}
-
+// Migrate applies the database schema for the User model used in tests.
 func (f *UserCommonTestDB) Migrate() error {
 	return f.db.AutoMigrate(&model.User{})
 }
 
+// GenerateData seeds a common set of demo users into the test database.
+// The dataset is reused across multiple tests for consistent expectations.
 func (f *UserCommonTestDB) GenerateData() error {
 	db := f.db.Session(&gorm.Session{})
 	users := []*model.User{
@@ -90,11 +92,19 @@ func (f *UserCommonTestDB) GenerateData() error {
 			Password:    "P@ssw0rd10",
 			Email:       "mai.nguyen@example.com",
 		},
+		{
+			ID:          "550e8400-e29b-41d4-a716-446655440000",
+			DisplayName: "John Doe",
+			Username:    "johndoe",
+			Password:    "P@ssw0rd11",
+			Email:       "john.doe@example.com",
+		},
 	}
 
-	return db.CreateInBatches(users, 10).Error
-}
+	hasher := utils.NewHasher()
+	for _, u := range users {
+		u.Password = hasher.HashPassword(u.Password)
+	}
 
-func (f *UserCommonTestDB) DB() *gorm.DB {
-	return f.db
+	return db.CreateInBatches(users, len(users)).Error
 }

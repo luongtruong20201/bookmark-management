@@ -157,6 +157,144 @@ const docTemplate = `{
                 }
             }
         },
+        "/v1/self/info": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get the currently authenticated user's profile using the Bearer token",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get user profile",
+                "responses": {
+                    "200": {
+                        "description": "User profile",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized (missing/invalid token)",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the currently authenticated user's display name and email using the Bearer token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Update user profile",
+                "parameters": [
+                    {
+                        "description": "User profile update request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.updateProfileRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Updated user profile",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid request body or validation error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized (missing/invalid token)",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
+                    }
+                }
+            }
+        },
+        "/v1/users/login": {
+            "post": {
+                "description": "Authenticate user with username and password, returns JWT token",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "User login",
+                "parameters": [
+                    {
+                        "description": "User login credentials",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/handler.loginRequestBody"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successfully authenticated, returns JWT token",
+                        "schema": {
+                            "$ref": "#/definitions/handler.loginResponseBody"
+                        }
+                    },
+                    "400": {
+                        "description": "Invalid credentials or validation error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Message"
+                        }
+                    }
+                }
+            }
+        },
         "/v1/users/register": {
             "post": {
                 "description": "Create a new user account with username, password, display name, and email",
@@ -233,6 +371,49 @@ const docTemplate = `{
                 }
             }
         },
+        "handler.loginRequestBody": {
+            "type": "object",
+            "required": [
+                "password",
+                "username"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string",
+                    "example": "password123"
+                },
+                "username": {
+                    "type": "string",
+                    "example": "johndoe"
+                }
+            }
+        },
+        "handler.loginResponseBody": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                }
+            }
+        },
+        "handler.updateProfileRequestBody": {
+            "type": "object",
+            "required": [
+                "display_name",
+                "email"
+            ],
+            "properties": {
+                "display_name": {
+                    "type": "string",
+                    "example": "John Doe"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "john.doe@example.com"
+                }
+            }
+        },
         "handler.urlShortenReq": {
             "type": "object",
             "required": [
@@ -289,14 +470,21 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
-	Host:             "localhost:8080",
-	BasePath:         "/",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
 	Title:            "Bookmark API",
 	Description:      "API documentation for bookmark service",

@@ -1,4 +1,3 @@
-basePath: /
 definitions:
   handler.createUserInputBody:
     properties:
@@ -20,6 +19,36 @@ definitions:
     - email
     - password
     - username
+    type: object
+  handler.loginRequestBody:
+    properties:
+      password:
+        example: password123
+        type: string
+      username:
+        example: johndoe
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  handler.loginResponseBody:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+    type: object
+  handler.updateProfileRequestBody:
+    properties:
+      display_name:
+        example: John Doe
+        type: string
+      email:
+        example: john.doe@example.com
+        type: string
+    required:
+    - display_name
+    - email
     type: object
   handler.urlShortenReq:
     properties:
@@ -59,7 +88,6 @@ definitions:
       message:
         type: string
     type: object
-host: localhost:8080
 info:
   contact: {}
   description: API documentation for bookmark service
@@ -160,6 +188,96 @@ paths:
       summary: Get original URL by code
       tags:
       - url
+  /v1/self/info:
+    get:
+      description: Get the currently authenticated user's profile using the Bearer
+        token
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User profile
+          schema:
+            $ref: '#/definitions/model.User'
+        "401":
+          description: Unauthorized (missing/invalid token)
+          schema:
+            $ref: '#/definitions/response.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: Get user profile
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update the currently authenticated user's display name and email
+        using the Bearer token
+      parameters:
+      - description: User profile update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.updateProfileRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Updated user profile
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            $ref: '#/definitions/response.Message'
+        "401":
+          description: Unauthorized (missing/invalid token)
+          schema:
+            $ref: '#/definitions/response.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: Update user profile
+      tags:
+      - user
+  /v1/users/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate user with username and password, returns JWT token
+      parameters:
+      - description: User login credentials
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.loginRequestBody'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully authenticated, returns JWT token
+          schema:
+            $ref: '#/definitions/handler.loginResponseBody'
+        "400":
+          description: Invalid credentials or validation error
+          schema:
+            $ref: '#/definitions/response.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Message'
+      summary: User login
+      tags:
+      - user
   /v1/users/register:
     post:
       consumes:
@@ -191,4 +309,9 @@ paths:
       summary: Register new user
       tags:
       - user
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

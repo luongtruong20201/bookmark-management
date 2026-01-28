@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	service "github.com/luongtruong20201/bookmark-management/internal/services"
+	requtil "github.com/luongtruong20201/bookmark-management/pkg/request"
 	"github.com/rs/zerolog/log"
 )
 
@@ -53,12 +54,8 @@ func NewShortenURL(svc service.ShortenURL) ShortenURL {
 // @Failure 500 {object} map[string]string "Internal server error"
 // @Router /links/shorten [post]
 func (h *urlShortenHandler) ShortenURL(c *gin.Context) {
-	req := urlShortenReq{}
-
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"message": "unprocessable",
-		})
+	req, err := requtil.BindInputFromRequest[urlShortenReq](c)
+	if err != nil {
 		return
 	}
 
