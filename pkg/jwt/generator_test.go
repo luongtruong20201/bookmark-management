@@ -20,7 +20,7 @@ func TestJWTGenerator_GenerateeToken(t *testing.T) {
 	}{
 		{
 			name:    "valid key path",
-			keyPath: filepath.FromSlash("./private.pem"),
+			keyPath: filepath.FromSlash("./private_test.pem"),
 			inputContent: jwt.MapClaims{
 				"name":    "truonglq",
 				"address": "HY",
