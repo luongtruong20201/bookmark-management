@@ -8,14 +8,17 @@ import (
 	"github.com/luongtruong20201/bookmark-management/docs"
 	_ "github.com/luongtruong20201/bookmark-management/docs"
 	"github.com/luongtruong20201/bookmark-management/internal/api/middlewares"
+	bookmarkHandler "github.com/luongtruong20201/bookmark-management/internal/handlers/bookmark"
 	healthcheckHandler "github.com/luongtruong20201/bookmark-management/internal/handlers/healthcheck"
 	passwordHandler "github.com/luongtruong20201/bookmark-management/internal/handlers/password"
 	shortenHandler "github.com/luongtruong20201/bookmark-management/internal/handlers/shorten"
 	urlHandler "github.com/luongtruong20201/bookmark-management/internal/handlers/shorten"
 	userHandler "github.com/luongtruong20201/bookmark-management/internal/handlers/user"
+	bookmarkRepo "github.com/luongtruong20201/bookmark-management/internal/repositories/bookmark"
 	healthcheckRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/healthcheck"
 	urlRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/url"
 	userRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/user"
+	bookmarkService "github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
 	healthcheckService "github.com/luongtruong20201/bookmark-management/internal/services/healthcheck"
 	passwordService "github.com/luongtruong20201/bookmark-management/internal/services/password"
 	urlService "github.com/luongtruong20201/bookmark-management/internal/services/shorten"
@@ -44,6 +47,7 @@ type handlers struct {
 	healthCheck healthcheckHandler.Healthcheck
 	shorten     shortenHandler.ShortenURL
 	user        userHandler.User
+	bookmark bookmarkHandler.Handler
 }
 
 // EngineOpts holds the configuration options for creating a new API engine instance.
@@ -115,11 +119,16 @@ func (a *api) initHandlers() *handlers {
 	userSvc := userService.NewUser(userRepo, hasher, a.jwtGenerator)
 	userHandler := userHandler.NewUser(userSvc)
 
+	bookmarkRepo := bookmarkRepo.NewBookmark(a.db)
+	bookmarkService := bookmarkService.NewBookmarkSvc(bookmarkRepo, keyGen)
+	bookmarkHandler := bookmarkHandler.NewBookmarkHandler(bookmarkService)
+
 	return &handlers{
 		password:    passHandler,
 		healthCheck: healthcheckHandler,
 		shorten:     shortenHandler,
 		user:        userHandler,
+		bookmark: bookmarkHandler,
 	}
 }
 
@@ -147,6 +156,11 @@ func (a *api) initRoutes() {
 	{
 		v1Private.GET("/self/info", handlers.user.GetProfile)
 		v1Private.PUT("/self/info", handlers.user.UpdateProfile)
+
+		v1Private.GET("/bookmarks", handlers.bookmark.GetBookmarks)
+		v1Private.POST("/bookmarks", handlers.bookmark.Create)
+		v1Private.PUT("/bookmarks/:id", handlers.bookmark.UpdateBookmark)
+		v1Private.DELETE("/bookmarks/:id", handlers.bookmark.DeleteBookmark)
 	}
 
 	a.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
