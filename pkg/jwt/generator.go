@@ -15,6 +15,9 @@ type JWTGenerator interface {
 	GenerateToken(jwt.MapClaims) (string, error)
 }
 
+// jwtGenerator implements the JWTGenerator interface and provides JWT token generation
+// functionality using RSA private keys. It uses the RS256 signing algorithm to create
+// signed JWT tokens with the provided claims.
 type jwtGenerator struct {
 	privateKey *rsa.PrivateKey
 }

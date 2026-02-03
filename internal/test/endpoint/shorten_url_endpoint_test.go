@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/luongtruong20201/bookmark-management/internal/api"
 	redisPkg "github.com/luongtruong20201/bookmark-management/pkg/redis"
 	"github.com/redis/go-redis/v9"
@@ -100,7 +101,11 @@ func TestShortenURLEndpoint_ShortenURL(t *testing.T) {
 			t.Parallel()
 
 			redis := redisPkg.InitMockRedis(t)
-			app := api.New(cfg, redis, nil, nil, nil)
+			app := api.New(&api.EngineOpts{
+				Engine: gin.New(),
+				Cfg:    cfg,
+				Redis:  redis,
+			})
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
@@ -196,7 +201,11 @@ func TestShortenURLEndpoint_GetURL(t *testing.T) {
 			t.Parallel()
 
 			ctx := t.Context()
-			app := api.New(cfg, tc.setupMockRedis(t, ctx), nil, nil, nil)
+			app := api.New(&api.EngineOpts{
+				Engine: gin.New(),
+				Cfg:    cfg,
+				Redis:  tc.setupMockRedis(t, ctx),
+			})
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)

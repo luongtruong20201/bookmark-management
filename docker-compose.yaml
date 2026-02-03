@@ -35,6 +35,7 @@ services:
       - REDIS_ADDR=redis:6379
     depends_on:
       - redis
+      - postgres
     networks:
       - bookmark_network
 

@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gin-gonic/gin"
 	"github.com/luongtruong20201/bookmark-management/internal/api"
 	redisPkg "github.com/luongtruong20201/bookmark-management/pkg/redis"
 	"github.com/redis/go-redis/v9"
@@ -63,7 +64,11 @@ func TestHealthcheckEndPoint(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			rec := tc.setupTestHTTP(api.New(cfg, tc.setupMockRedis(t), nil, nil, nil))
+			rec := tc.setupTestHTTP(api.New(&api.EngineOpts{
+				Engine: gin.New(),
+				Cfg:    cfg,
+				Redis:  tc.setupMockRedis(t),
+			}))
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
 			assert.Equal(t, tc.expectedMessage, rec.Body.String())
