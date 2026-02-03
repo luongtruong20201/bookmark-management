@@ -1,4 +1,4 @@
 .idea/
 coverage.*
-./public.pem
-./private.pem
+public.pem
+private.pem

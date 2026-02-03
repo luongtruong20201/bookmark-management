@@ -1,0 +1,47 @@
+package password
+
+import (
+	"net/http"
+
+	"github.com/gin-gonic/gin"
+	service "github.com/luongtruong20201/bookmark-management/internal/services/password"
+	"github.com/rs/zerolog/log"
+)
+
+// passwordHandler implements the Password interface and provides HTTP handlers
+// for password generation operations. It encapsulates the password service dependency
+// for business logic execution.
+type passwordHandler struct {
+	svc service.Password
+}
+
+// Password defines the interface for password handlers.
+// It provides methods to generate random passwords.
+type Password interface {
+	GenPass(*gin.Context)
+}
+
+// NewPassword creates a new password handler with the provided password service.
+func NewPassword(svc service.Password) Password {
+	return &passwordHandler{
+		svc: svc,
+	}
+}
+
+// GenPass handles the password generation endpoint request. It generates a new password
+// using the password service and returns it as a plain text response.
+// @Summary Generate password
+// @Description Generate a random alphanumeric password
+// @Tags password
+// @Success 200 {string} string "Generated password"
+// @Failure 500 {string} string "Internal server error"
+// @Router /gen-pass [get]
+func (h *passwordHandler) GenPass(c *gin.Context) {
+	pass, err := h.svc.GeneratePassword()
+	if err != nil {
+		log.Error().Err(err).Msg("error when generating password")
+		c.String(http.StatusInternalServerError, "err")
+	}
+
+	c.String(http.StatusOK, pass)
+}

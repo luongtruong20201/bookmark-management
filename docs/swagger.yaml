@@ -1,5 +1,47 @@
 definitions:
-  handler.createUserInputBody:
+  model.User:
+    properties:
+      created_at:
+        type: string
+      display_name:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  response.Message:
+    properties:
+      details: {}
+      message:
+        type: string
+    type: object
+  shorten.urlShortenReq:
+    properties:
+      exp:
+        example: 3600
+        maximum: 604800
+        minimum: 0
+        type: integer
+      url:
+        example: https://fb.com
+        type: string
+    required:
+    - exp
+    - url
+    type: object
+  shorten.urlShortenRes:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+    type: object
+  user.createUserInputBody:
     properties:
       display_name:
         example: John Doe
@@ -20,7 +62,7 @@ definitions:
     - password
     - username
     type: object
-  handler.loginRequestBody:
+  user.loginRequestBody:
     properties:
       password:
         example: password123
@@ -32,13 +74,13 @@ definitions:
     - password
     - username
     type: object
-  handler.loginResponseBody:
+  user.loginResponseBody:
     properties:
       token:
         example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         type: string
     type: object
-  handler.updateProfileRequestBody:
+  user.updateProfileRequestBody:
     properties:
       display_name:
         example: John Doe
@@ -49,44 +91,6 @@ definitions:
     required:
     - display_name
     - email
-    type: object
-  handler.urlShortenReq:
-    properties:
-      exp:
-        example: 3600
-        maximum: 604800
-        minimum: 0
-        type: integer
-      url:
-        example: https://fb.com
-        type: string
-    required:
-    - exp
-    - url
-    type: object
-  handler.urlShortenRes:
-    properties:
-      code:
-        type: string
-      message:
-        type: string
-    type: object
-  model.User:
-    properties:
-      display_name:
-        type: string
-      email:
-        type: string
-      id:
-        type: string
-      username:
-        type: string
-    type: object
-  response.Message:
-    properties:
-      details: {}
-      message:
-        type: string
     type: object
 info:
   contact: {}
@@ -134,14 +138,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handler.urlShortenReq'
+          $ref: '#/definitions/shorten.urlShortenReq'
       produces:
       - application/json
       responses:
         "200":
           description: Successfully shortened URL
           schema:
-            $ref: '#/definitions/handler.urlShortenRes'
+            $ref: '#/definitions/shorten.urlShortenRes'
         "400":
           description: Invalid request body
           schema:
@@ -223,7 +227,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handler.updateProfileRequestBody'
+          $ref: '#/definitions/user.updateProfileRequestBody'
       produces:
       - application/json
       responses:
@@ -259,14 +263,14 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handler.loginRequestBody'
+          $ref: '#/definitions/user.loginRequestBody'
       produces:
       - application/json
       responses:
         "200":
           description: Successfully authenticated, returns JWT token
           schema:
-            $ref: '#/definitions/handler.loginResponseBody'
+            $ref: '#/definitions/user.loginResponseBody'
         "400":
           description: Invalid credentials or validation error
           schema:
@@ -290,7 +294,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handler.createUserInputBody'
+          $ref: '#/definitions/user.createUserInputBody'
       produces:
       - application/json
       responses:

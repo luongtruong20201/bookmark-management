@@ -188,10 +188,10 @@ func TestJWTAuth_JWTAuth(t *testing.T) {
 					}, nil).Once()
 				return mockValidator
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusUnauthorized,
 			expectedBody:   nil,
 			expectedUserID: "",
-			shouldAbort:    false,
+			shouldAbort:    true,
 		},
 		{
 			name:       "success - valid token with sub claim as number",
@@ -206,10 +206,10 @@ func TestJWTAuth_JWTAuth(t *testing.T) {
 					}, nil).Once()
 				return mockValidator
 			},
-			expectedStatus: http.StatusOK,
+			expectedStatus: http.StatusUnauthorized,
 			expectedBody:   nil,
 			expectedUserID: 12345,
-			shouldAbort:    false,
+			shouldAbort:    true,
 		},
 		{
 			name:       "error - Authorization header with only Bearer",
@@ -319,7 +319,8 @@ func TestJWTAuth_JWTAuth_Integration(t *testing.T) {
 			},
 			func(c *gin.Context) {
 				handler2Called = true
-				userID, _ := c.Get("userID")
+				claims, _ := c.Get("claims")
+				userID := claims.(jwt.MapClaims)["sub"]
 				c.JSON(http.StatusOK, gin.H{
 					"userID": userID,
 					"status": "ok",
