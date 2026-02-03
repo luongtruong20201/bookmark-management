@@ -19,6 +19,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -tags musl -ldflags="-w -s" \
     -o bookmark_service cmd/api/main.go
 
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -tags musl -ldflags="-w -s" \
+    -o migrate cmd/migrate/main.go
+
 FROM base AS test-exec
 
 ARG _outputdir="/tmp/coverage"
@@ -42,9 +46,15 @@ ENV TZ=Asia/Ho_Chi_Minh
 WORKDIR /app
 
 COPY --from=build /opt/app/bookmark_service /app/bookmark_service
+COPY --from=build /opt/app/migrate /app/migrate
 COPY --from=build /opt/app/docs /app/docs
 COPY --from=build /opt/app/migrations /app/migrations
 
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
 
-CMD ["/app/bookmark_service"]
+RUN apk add --no-cache openssl 
+
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+CMD ["/app/entrypoint.sh"]

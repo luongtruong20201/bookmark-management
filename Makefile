@@ -67,11 +67,30 @@ docker-test:
 		echo "Coverage ($$total%) meets threshold ($(COVERAGE_THRESHOLD)%)"; \
 	fi
 
-.PHONY: generate-rsa-key
-generate-rsa-key:
+.PHONY: generate-rsa-key generate-key
+generate-rsa-key: generate-key
+
+generate-key:
+	@echo "Generating RSA key pair..."
 	openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
 	openssl rsa -pubout -in private.pem -out public.pem
+	@echo "RSA key pair generated successfully!"
+	@echo "  - private.pem (private key)"
+	@echo "  - public.pem (public key)"
 
-.PHONY: migrate
+.PHONY: migrate migrate-up migrate-down migrate-steps
 migrate:
-	go run cmd/migrate/main.go
+	go run cmd/migrate/main.go -mode=up
+
+migrate-up:
+	go run cmd/migrate/main.go -mode=up
+
+migrate-down:
+	go run cmd/migrate/main.go -mode=down
+
+migrate-steps:
+	@if [ -z "$(STEPS)" ]; then \
+		echo "Error: STEPS is required. Usage: make migrate-steps STEPS=1"; \
+		exit 1; \
+	fi
+	go run cmd/migrate/main.go -mode=steps -steps=$(STEPS)
