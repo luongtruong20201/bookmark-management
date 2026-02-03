@@ -1,4 +1,59 @@
 definitions:
+  bookmark.createBookmarkInput:
+    properties:
+      description:
+        maxLength: 255
+        type: string
+      url:
+        maxLength: 2048
+        type: string
+    required:
+    - url
+    type: object
+  bookmark.createBookmarkResponse:
+    properties:
+      data:
+        $ref: '#/definitions/model.Bookmark'
+      message:
+        type: string
+    type: object
+  bookmark.getBookmarksResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.Bookmark'
+        type: array
+      pagination:
+        $ref: '#/definitions/response.PaginationMetadata'
+    type: object
+  bookmark.updateBookmarkInput:
+    properties:
+      description:
+        maxLength: 255
+        type: string
+      id:
+        type: string
+      url:
+        maxLength: 2048
+        type: string
+    required:
+    - id
+    type: object
+  model.Bookmark:
+    properties:
+      code:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      updated_at:
+        type: string
+      url:
+        type: string
+    type: object
   model.User:
     properties:
       created_at:
@@ -19,6 +74,19 @@ definitions:
       details: {}
       message:
         type: string
+    type: object
+  response.PaginationMetadata:
+    properties:
+      limit:
+        description: PageSize is the number of items per page, exposed to clients
+          as "limit".
+        type: integer
+      page:
+        description: Page is the current page number (1-indexed).
+        type: integer
+      total:
+        description: Total is the total number of records available.
+        type: integer
     type: object
   shorten.urlShortenReq:
     properties:
@@ -161,6 +229,162 @@ paths:
       summary: Shorten URL
       tags:
       - url
+  /v1/bookmarks:
+    get:
+      consumes:
+      - application/json
+      description: Get a paginated list of bookmarks for the authenticated user
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: List of bookmarks with pagination
+          schema:
+            $ref: '#/definitions/bookmark.getBookmarksResponse'
+        "400":
+          description: Invalid pagination parameters
+          schema:
+            $ref: '#/definitions/response.Message'
+        "401":
+          description: Unauthorized (missing/invalid token)
+          schema:
+            $ref: '#/definitions/response.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: List bookmarks
+      tags:
+      - bookmark
+    post:
+      consumes:
+      - application/json
+      description: Create a new bookmark for the authenticated user
+      parameters:
+      - description: Bookmark create request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bookmark.createBookmarkInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Create a bookmark successfully
+          schema:
+            $ref: '#/definitions/bookmark.createBookmarkResponse'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            $ref: '#/definitions/response.Message'
+        "401":
+          description: Unauthorized (missing/invalid token)
+          schema:
+            $ref: '#/definitions/response.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: Create bookmark
+      tags:
+      - bookmark
+  /v1/bookmarks/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a bookmark for the authenticated user
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted bookmark
+          schema:
+            $ref: '#/definitions/response.Message'
+        "400":
+          description: Invalid request or validation error
+          schema:
+            $ref: '#/definitions/response.Message'
+        "401":
+          description: Unauthorized (missing/invalid token)
+          schema:
+            $ref: '#/definitions/response.Message'
+        "404":
+          description: Bookmark not found
+          schema:
+            $ref: '#/definitions/response.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: Delete bookmark
+      tags:
+      - bookmark
+    put:
+      consumes:
+      - application/json
+      description: Update an existing bookmark for the authenticated user
+      parameters:
+      - description: Bookmark ID
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Bookmark update request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/bookmark.updateBookmarkInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully updated bookmark
+          schema:
+            $ref: '#/definitions/response.Message'
+        "400":
+          description: Invalid request body or validation error
+          schema:
+            $ref: '#/definitions/response.Message'
+        "401":
+          description: Unauthorized (missing/invalid token)
+          schema:
+            $ref: '#/definitions/response.Message'
+        "404":
+          description: Bookmark not found
+          schema:
+            $ref: '#/definitions/response.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: Update bookmark
+      tags:
+      - bookmark
   /v1/links/{code}:
     get:
       consumes:
