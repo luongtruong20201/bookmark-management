@@ -21,6 +21,9 @@ type JWTValidator interface {
 	ValidateToken(string) (jwt.MapClaims, error)
 }
 
+// jwtValidator implements the JWTValidator interface and provides JWT token validation
+// functionality using RSA public keys. It verifies token signatures and validates
+// token claims to ensure authenticity and integrity.
 type jwtValidator struct {
 	publicKey *rsa.PublicKey
 }
