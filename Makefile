@@ -8,7 +8,7 @@ COVERAGE_FOLDER=./coverage
 IMG_TAG := $(or $(GIT_TAG),$(BRANCH),dev)
 export IMG_TAG
 
-COVERAGE_EXCLUDE=mocks|main.go|test
+COVERAGE_EXCLUDE=mocks|main.go|test|infrastructure
 COVERAGE_THRESHOLD=50
 
 .PHONY: run
@@ -71,3 +71,7 @@ docker-test:
 generate-rsa-key:
 	openssl genpkey -algorithm RSA -out private.pem -pkeyopt rsa_keygen_bits:2048
 	openssl rsa -pubout -in private.pem -out public.pem
+
+.PHONY: migrate
+migrate:
+	go run cmd/migrate/main.go

@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/luongtruong20201/bookmark-management/pkg/jwt"
+	jwtPkg "github.com/luongtruong20201/bookmark-management/pkg/jwt"
 )
 
 // JWTAuth defines the interface for JWT authentication middleware.
@@ -17,14 +17,17 @@ type JWTAuth interface {
 	JWTAuth() gin.HandlerFunc
 }
 
+// jwtAuth implements the JWTAuth interface and provides JWT authentication middleware
+// functionality. It validates Bearer tokens from the Authorization header and populates
+// the Gin context with JWT claims for authenticated requests.
 type jwtAuth struct {
-	jwtValidator jwt.JWTValidator
+	jwtValidator jwtPkg.JWTValidator
 }
 
 // NewJWTAuth creates a new JWT authentication middleware instance using the
 // provided JWT validator. The returned middleware can be attached to protected
 // routes to enforce authentication.
-func NewJWTAuth(jwtValidator jwt.JWTValidator) JWTAuth {
+func NewJWTAuth(jwtValidator jwtPkg.JWTValidator) JWTAuth {
 	return &jwtAuth{
 		jwtValidator: jwtValidator,
 	}
@@ -59,14 +62,15 @@ func (m *jwtAuth) JWTAuth() gin.HandlerFunc {
 			return
 		}
 
-		userId, ok := tokenContent["sub"]
-		if !ok {
+		userID, ok := tokenContent["sub"]
+		_, okStr := userID.(string)
+		if !ok || !okStr || userID == "" {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
 			c.Abort()
 			return
 		}
 
-		c.Set("userID", userId)
+		c.Set("claims", tokenContent)
 		c.Next()
 	}
 }

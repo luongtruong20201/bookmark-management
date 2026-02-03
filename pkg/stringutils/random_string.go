@@ -19,6 +19,9 @@ type KeyGenerator interface {
 	GenerateCode(int) (string, error)
 }
 
+// keyGen implements the KeyGenerator interface and provides random code generation
+// functionality. It uses cryptographically secure random number generation to create
+// alphanumeric strings of specified lengths.
 type keyGen struct{}
 
 // NewKeyGen creates a new key generator instance.

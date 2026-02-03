@@ -9,6 +9,7 @@ import (
 
 	"errors"
 
+	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/luongtruong20201/bookmark-management/internal/api"
 	model "github.com/luongtruong20201/bookmark-management/internal/models"
@@ -201,7 +202,9 @@ func TestUserEndpoint_RegisterUser(t *testing.T) {
 			}
 			if tc.name == "duplicate username" {
 				existingUser := &model.User{
-					ID:          "550e8400-e29b-41d4-a716-446655440000",
+					Base: model.Base{
+						ID: "550e8400-e29b-41d4-a716-446655440000",
+					},
 					Username:    "existinguser",
 					Password:    "hashedpassword",
 					DisplayName: "Existing User",
@@ -209,7 +212,11 @@ func TestUserEndpoint_RegisterUser(t *testing.T) {
 				}
 				db.Create(existingUser)
 			}
-			app := api.New(cfg, nil, db, nil, nil)
+			app := api.New(&api.EngineOpts{
+				Engine: gin.New(),
+				Cfg:    cfg,
+				DB:     db,
+			})
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
@@ -421,7 +428,14 @@ func TestUserEndpoint_Login(t *testing.T) {
 
 			db := fixture.NewFixture(t, &fixture.UserCommonTestDB{})
 			jwtGen, jwtVal := tc.setupJWT(t)
-			app := api.New(cfg, nil, db, jwtGen, jwtVal)
+			app := api.New(&api.EngineOpts{
+				Engine:       gin.New(),
+				DB:           db,
+				JWTGenerator: jwtGen,
+				JWTValidator: jwtVal,
+				Cfg:          cfg,
+			})
+			// app := api.New(cfg, nil, db, jwtGen, jwtVal)
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
@@ -603,7 +617,14 @@ func TestUserEndpoint_GetProfile(t *testing.T) {
 
 			db := fixture.NewFixture(t, &fixture.UserCommonTestDB{})
 			jwtGen, jwtVal, token := tc.setupJWT(t, mockUserID)
-			app := api.New(cfg, nil, db, jwtGen, jwtVal)
+			// app := api.New(cfg, nil, db, jwtGen, jwtVal)
+			app := api.New(&api.EngineOpts{
+				Engine:       gin.New(),
+				DB:           db,
+				JWTGenerator: jwtGen,
+				JWTValidator: jwtVal,
+				Cfg:          cfg,
+			})
 			rec := tc.setupHTTP(app, token)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)
@@ -751,7 +772,14 @@ func TestUserEndpoint_UpdateProfile(t *testing.T) {
 
 			db := fixture.NewFixture(t, &fixture.UserCommonTestDB{})
 			jwtGen, jwtVal, token := tc.setupJWT(t, mockUserID)
-			app := api.New(cfg, nil, db, jwtGen, jwtVal)
+			// app := api.New(cfg, nil, db, jwtGen, jwtVal)
+			app := api.New(&api.EngineOpts{
+				Engine:       gin.New(),
+				DB:           db,
+				JWTGenerator: jwtGen,
+				JWTValidator: jwtVal,
+				Cfg:          cfg,
+			})
 			rec := tc.setupHTTP(app, token)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)

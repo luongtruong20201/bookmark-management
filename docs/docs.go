@@ -78,7 +78,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.urlShortenReq"
+                            "$ref": "#/definitions/shorten.urlShortenReq"
                         }
                     }
                 ],
@@ -86,7 +86,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successfully shortened URL",
                         "schema": {
-                            "$ref": "#/definitions/handler.urlShortenRes"
+                            "$ref": "#/definitions/shorten.urlShortenRes"
                         }
                     },
                     "400": {
@@ -217,7 +217,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.updateProfileRequestBody"
+                            "$ref": "#/definitions/user.updateProfileRequestBody"
                         }
                     }
                 ],
@@ -269,7 +269,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.loginRequestBody"
+                            "$ref": "#/definitions/user.loginRequestBody"
                         }
                     }
                 ],
@@ -277,7 +277,7 @@ const docTemplate = `{
                     "200": {
                         "description": "Successfully authenticated, returns JWT token",
                         "schema": {
-                            "$ref": "#/definitions/handler.loginResponseBody"
+                            "$ref": "#/definitions/user.loginResponseBody"
                         }
                     },
                     "400": {
@@ -315,7 +315,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.createUserInputBody"
+                            "$ref": "#/definitions/user.createUserInputBody"
                         }
                     }
                 ],
@@ -343,7 +343,69 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handler.createUserInputBody": {
+        "model.User": {
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "display_name": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "response.Message": {
+            "type": "object",
+            "properties": {
+                "details": {},
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "shorten.urlShortenReq": {
+            "type": "object",
+            "required": [
+                "exp",
+                "url"
+            ],
+            "properties": {
+                "exp": {
+                    "type": "integer",
+                    "maximum": 604800,
+                    "minimum": 0,
+                    "example": 3600
+                },
+                "url": {
+                    "type": "string",
+                    "example": "https://fb.com"
+                }
+            }
+        },
+        "shorten.urlShortenRes": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
+        },
+        "user.createUserInputBody": {
             "type": "object",
             "required": [
                 "display_name",
@@ -371,7 +433,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.loginRequestBody": {
+        "user.loginRequestBody": {
             "type": "object",
             "required": [
                 "password",
@@ -388,7 +450,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.loginResponseBody": {
+        "user.loginResponseBody": {
             "type": "object",
             "properties": {
                 "token": {
@@ -397,7 +459,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.updateProfileRequestBody": {
+        "user.updateProfileRequestBody": {
             "type": "object",
             "required": [
                 "display_name",
@@ -411,62 +473,6 @@ const docTemplate = `{
                 "email": {
                     "type": "string",
                     "example": "john.doe@example.com"
-                }
-            }
-        },
-        "handler.urlShortenReq": {
-            "type": "object",
-            "required": [
-                "exp",
-                "url"
-            ],
-            "properties": {
-                "exp": {
-                    "type": "integer",
-                    "maximum": 604800,
-                    "minimum": 0,
-                    "example": 3600
-                },
-                "url": {
-                    "type": "string",
-                    "example": "https://fb.com"
-                }
-            }
-        },
-        "handler.urlShortenRes": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "string"
-                },
-                "message": {
-                    "type": "string"
-                }
-            }
-        },
-        "model.User": {
-            "type": "object",
-            "properties": {
-                "display_name": {
-                    "type": "string"
-                },
-                "email": {
-                    "type": "string"
-                },
-                "id": {
-                    "type": "string"
-                },
-                "username": {
-                    "type": "string"
-                }
-            }
-        },
-        "response.Message": {
-            "type": "object",
-            "properties": {
-                "details": {},
-                "message": {
-                    "type": "string"
                 }
             }
         }
