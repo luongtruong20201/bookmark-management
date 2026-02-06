@@ -11,6 +11,7 @@ import (
 )
 
 func TestPasswordEndpoint(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{

@@ -35,7 +35,7 @@ func TestRepository_UpdateBookmark(t *testing.T) {
 				assert.Equal(t, "Updated Facebook Description", bookmark.Description)
 				assert.Equal(t, "https://www.facebook.com/updated", bookmark.URL)
 				assert.Equal(t, "9b5c1e3e-7c3b-4f4e-8e7c-6e7a2f5d3a91", bookmark.UserID)
-				assert.Equal(t, "abc1234", bookmark.Code)
+				assert.Equal(t, "abc12345", bookmark.Code)
 			},
 		},
 		{

@@ -12,6 +12,7 @@ import (
 )
 
 func TestHealthcheckHandler_Check(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	testCases := []struct {

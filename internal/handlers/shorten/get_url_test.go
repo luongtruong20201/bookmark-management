@@ -15,6 +15,7 @@ import (
 )
 
 func TestShortenURLHandler_GetURL(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	testCases := []struct {
@@ -90,6 +91,75 @@ func TestShortenURLHandler_GetURL(t *testing.T) {
 				return svc
 			},
 			expectedStatus: http.StatusMovedPermanently,
+		},
+		{
+			name: "success - bookmark code (8 chars)",
+			setupRequest: func(c *gin.Context) {
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect", nil)
+				c.Request = req
+				c.Params = gin.Params{gin.Param{Key: "code", Value: "12345678"}}
+			},
+			setupMockSvc: func(t *testing.T, ctx context.Context) *mocks.ShortenURL {
+				svc := mocks.NewShortenURL(t)
+				svc.On("GetURL", ctx, "12345678").Return("https://example.com", nil)
+
+				return svc
+			},
+			expectedStatus: http.StatusMovedPermanently,
+		},
+		{
+			name: "code with special characters",
+			setupRequest: func(c *gin.Context) {
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect", nil)
+				c.Request = req
+				c.Params = gin.Params{gin.Param{Key: "code", Value: "abc-123"}}
+			},
+			setupMockSvc: func(t *testing.T, ctx context.Context) *mocks.ShortenURL {
+				svc := mocks.NewShortenURL(t)
+				svc.On("GetURL", ctx, "abc-123").Return("", service.ErrCodeNotFound)
+
+				return svc
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedResp: map[string]any{
+				"message": "url not found",
+			},
+		},
+		{
+			name: "code with spaces",
+			setupRequest: func(c *gin.Context) {
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect", nil)
+				c.Request = req
+				c.Params = gin.Params{gin.Param{Key: "code", Value: "123 4567"}}
+			},
+			setupMockSvc: func(t *testing.T, ctx context.Context) *mocks.ShortenURL {
+				svc := mocks.NewShortenURL(t)
+				svc.On("GetURL", ctx, "123 4567").Return("", service.ErrCodeNotFound)
+
+				return svc
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedResp: map[string]any{
+				"message": "url not found",
+			},
+		},
+		{
+			name: "very long code",
+			setupRequest: func(c *gin.Context) {
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect", nil)
+				c.Request = req
+				c.Params = gin.Params{gin.Param{Key: "code", Value: "12345678901234567890"}}
+			},
+			setupMockSvc: func(t *testing.T, ctx context.Context) *mocks.ShortenURL {
+				svc := mocks.NewShortenURL(t)
+				svc.On("GetURL", ctx, "12345678901234567890").Return("", service.ErrCodeNotFound)
+
+				return svc
+			},
+			expectedStatus: http.StatusBadRequest,
+			expectedResp: map[string]any{
+				"message": "url not found",
+			},
 		},
 	}
 

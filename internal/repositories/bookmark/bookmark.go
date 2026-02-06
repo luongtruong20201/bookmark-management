@@ -17,6 +17,7 @@ type Repository interface {
 	CountBookmarks(ctx context.Context, userID string) (int64, error)
 	UpdateBookmark(ctx context.Context, bookmarkID, userID string, updates *model.Bookmark) (*model.Bookmark, error)
 	DeleteBookmark(ctx context.Context, bookmarkID, userID string) error
+	GetBookmarkByCode(ctx context.Context, code string) (*model.Bookmark, error)
 }
 
 // repository is the concrete implementation of the Repository interface.

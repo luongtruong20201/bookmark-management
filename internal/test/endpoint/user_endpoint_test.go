@@ -23,6 +23,7 @@ import (
 )
 
 func TestUserEndpoint_RegisterUser(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -244,6 +245,7 @@ func TestUserEndpoint_RegisterUser(t *testing.T) {
 }
 
 func TestUserEndpoint_Login(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -459,6 +461,7 @@ func TestUserEndpoint_Login(t *testing.T) {
 }
 
 func TestUserEndpoint_GetProfile(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -648,6 +651,7 @@ func TestUserEndpoint_GetProfile(t *testing.T) {
 }
 
 func TestUserEndpoint_UpdateProfile(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{

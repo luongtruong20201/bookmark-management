@@ -10,12 +10,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/luongtruong20201/bookmark-management/internal/api"
+	"github.com/luongtruong20201/bookmark-management/internal/test/fixture"
 	redisPkg "github.com/luongtruong20201/bookmark-management/pkg/redis"
 	"github.com/redis/go-redis/v9"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestShortenURLEndpoint_ShortenURL(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -119,6 +121,7 @@ func TestShortenURLEndpoint_ShortenURL(t *testing.T) {
 }
 
 func TestShortenURLEndpoint_GetURL(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -136,7 +139,7 @@ func TestShortenURLEndpoint_GetURL(t *testing.T) {
 		verifyRedirect func(t *testing.T, location string)
 	}{
 		{
-			name: "not found",
+			name: "not found - Redis code not exists",
 			setupMockRedis: func(t *testing.T, ctx context.Context) *redis.Client {
 				redis := redisPkg.InitMockRedis(t)
 				return redis
@@ -155,7 +158,7 @@ func TestShortenURLEndpoint_GetURL(t *testing.T) {
 			},
 		},
 		{
-			name: "internal server error",
+			name: "internal server error - Redis connection",
 			setupMockRedis: func(t *testing.T, ctx context.Context) *redis.Client {
 				redis := redisPkg.InitMockRedis(t)
 				_ = redis.Close()
@@ -175,7 +178,7 @@ func TestShortenURLEndpoint_GetURL(t *testing.T) {
 			},
 		},
 		{
-			name: "success",
+			name: "success - redirect from Redis (7 chars)",
 			setupMockRedis: func(t *testing.T, ctx context.Context) *redis.Client {
 				redis := redisPkg.InitMockRedis(t)
 				redis.Set(ctx, "1234567", "https://truonglq.com", 0)
@@ -194,6 +197,63 @@ func TestShortenURLEndpoint_GetURL(t *testing.T) {
 				assert.Equal(t, location, "https://truonglq.com")
 			},
 		},
+		{
+			name: "success - redirect from DB bookmark (8 chars)",
+			setupMockRedis: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			setupHTTP: func(api api.Engine) *httptest.ResponseRecorder {
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/abc12345", nil)
+				rec := httptest.NewRecorder()
+
+				api.ServeHTTP(rec, req)
+
+				return rec
+			},
+			expectedStatus: http.StatusMovedPermanently,
+			verifyRedirect: func(t *testing.T, location string) {
+				assert.Equal(t, location, "https://www.facebook.com")
+			},
+		},
+		{
+			name: "not found - bookmark code not exists in DB (8 chars)",
+			setupMockRedis: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			setupHTTP: func(api api.Engine) *httptest.ResponseRecorder {
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/nonexist", nil)
+				rec := httptest.NewRecorder()
+
+				api.ServeHTTP(rec, req)
+
+				return rec
+			},
+			expectedStatus: http.StatusBadRequest,
+			verifyBody: func(t *testing.T, body map[string]any) {
+				assert.Equal(t, body["message"], "url not found")
+			},
+		},
+		{
+			name: "not found - invalid code length",
+			setupMockRedis: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			setupHTTP: func(api api.Engine) *httptest.ResponseRecorder {
+				req := httptest.NewRequest(http.MethodGet, "/v1/links/redirect/12345", nil)
+				rec := httptest.NewRecorder()
+
+				api.ServeHTTP(rec, req)
+
+				return rec
+			},
+			expectedStatus: http.StatusBadRequest,
+			verifyBody: func(t *testing.T, body map[string]any) {
+				assert.Equal(t, body["message"], "url not found")
+			},
+		},
 	}
 
 	for _, tc := range testCases {
@@ -201,11 +261,13 @@ func TestShortenURLEndpoint_GetURL(t *testing.T) {
 			t.Parallel()
 
 			ctx := t.Context()
-			app := api.New(&api.EngineOpts{
+			opts := &api.EngineOpts{
 				Engine: gin.New(),
 				Cfg:    cfg,
 				Redis:  tc.setupMockRedis(t, ctx),
-			})
+				DB:     fixture.NewFixture(t, &fixture.BookmarkCommonTestDB{}),
+			}
+			app := api.New(opts)
 			rec := tc.setupHTTP(app)
 
 			assert.Equal(t, tc.expectedStatus, rec.Code)

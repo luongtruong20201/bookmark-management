@@ -14,11 +14,13 @@ import (
 	"github.com/luongtruong20201/bookmark-management/internal/test/fixture"
 	jwtPkg "github.com/luongtruong20201/bookmark-management/pkg/jwt"
 	jwtMocks "github.com/luongtruong20201/bookmark-management/pkg/jwt/mocks"
+	redisPkg "github.com/luongtruong20201/bookmark-management/pkg/redis"
 	"github.com/stretchr/testify/assert"
 	"gorm.io/gorm"
 )
 
 func TestBookmarkEndpoint_CreateBookmark(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -158,10 +160,12 @@ func TestBookmarkEndpoint_CreateBookmark(t *testing.T) {
 
 			db := fixture.NewFixture(t, &fixture.BookmarkCommonTestDB{})
 			jwtGen, jwtVal, token := tc.setupJWT(t, mockUserID)
+			redis := redisPkg.InitMockRedis(t)
 
 			app := api.New(&api.EngineOpts{
 				Engine:       gin.New(),
 				DB:           db,
+				Redis:        redis,
 				JWTGenerator: jwtGen,
 				JWTValidator: jwtVal,
 				Cfg:          cfg,
@@ -194,6 +198,7 @@ func TestBookmarkEndpoint_CreateBookmark(t *testing.T) {
 }
 
 func TestBookmarkEndpoint_GetBookmarks(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -486,10 +491,12 @@ func TestBookmarkEndpoint_GetBookmarks(t *testing.T) {
 
 			db := fixture.NewFixture(t, &fixture.BookmarkCommonTestDB{})
 			jwtGen, jwtVal, token := tc.setupJWT(t, mockUserID)
+			redis := redisPkg.InitMockRedis(t)
 
 			app := api.New(&api.EngineOpts{
 				Engine:       gin.New(),
 				DB:           db,
+				Redis:        redis,
 				JWTGenerator: jwtGen,
 				JWTValidator: jwtVal,
 				Cfg:          cfg,
@@ -518,6 +525,7 @@ func TestBookmarkEndpoint_GetBookmarks(t *testing.T) {
 }
 
 func TestBookmarkEndpoint_UpdateBookmark(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -759,10 +767,12 @@ func TestBookmarkEndpoint_UpdateBookmark(t *testing.T) {
 
 			db := fixture.NewFixture(t, &fixture.BookmarkCommonTestDB{})
 			jwtGen, jwtVal, token := tc.setupJWT(t, fixtureUserIDAnNguyen)
+			redis := redisPkg.InitMockRedis(t)
 
 			app := api.New(&api.EngineOpts{
 				Engine:       gin.New(),
 				DB:           db,
+				Redis:        redis,
 				JWTGenerator: jwtGen,
 				JWTValidator: jwtVal,
 				Cfg:          cfg,
@@ -795,6 +805,7 @@ func TestBookmarkEndpoint_UpdateBookmark(t *testing.T) {
 }
 
 func TestBookmarkEndpoint_DeleteBookmark(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	cfg := &api.Config{
@@ -936,10 +947,12 @@ func TestBookmarkEndpoint_DeleteBookmark(t *testing.T) {
 
 			db := fixture.NewFixture(t, &fixture.BookmarkCommonTestDB{})
 			jwtGen, jwtVal, token := tc.setupJWT(t, fixtureUserIDAnNguyen)
+			redis := redisPkg.InitMockRedis(t)
 
 			app := api.New(&api.EngineOpts{
 				Engine:       gin.New(),
 				DB:           db,
+				Redis:        redis,
 				JWTGenerator: jwtGen,
 				JWTValidator: jwtVal,
 				Cfg:          cfg,

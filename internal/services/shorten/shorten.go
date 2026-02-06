@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 
+	bookmarkRepo "github.com/luongtruong20201/bookmark-management/internal/repositories/bookmark"
 	repository "github.com/luongtruong20201/bookmark-management/internal/repositories/url"
 	"github.com/luongtruong20201/bookmark-management/pkg/stringutils"
 )
 
 const (
-	// codeLength is the length of the generated short code for URLs.
-	codeLength = 7
+	// urlCodeLength is the length of the generated short code for URLs.
+	urlCodeLength = 7
+	// bookmarkCodeLength is the length of the generated code for bookmarks.
+	bookmarkCodeLength = 8
 )
 
 var (
@@ -34,15 +37,17 @@ type ShortenURL interface {
 // for URL shortening operations. It uses a key generator to create short codes
 // and a repository to store and retrieve URL mappings.
 type shortenURL struct {
-	keyGen     stringutils.KeyGenerator
-	repository repository.URLStorage
+	keyGen       stringutils.KeyGenerator
+	repository   repository.URLStorage
+	bookmarkRepo bookmarkRepo.Repository
 }
 
 // NewShortenURL creates a new shorten URL service instance with the provided
-// key generator and URL storage repository.
-func NewShortenURL(keyGen stringutils.KeyGenerator, repository repository.URLStorage) ShortenURL {
+// key generator, URL storage repository, and bookmark repository.
+func NewShortenURL(keyGen stringutils.KeyGenerator, repository repository.URLStorage, bookmarkRepo bookmarkRepo.Repository) ShortenURL {
 	return &shortenURL{
-		keyGen:     keyGen,
-		repository: repository,
+		keyGen:       keyGen,
+		repository:   repository,
+		bookmarkRepo: bookmarkRepo,
 	}
 }

@@ -6,7 +6,13 @@ import (
 	model "github.com/luongtruong20201/bookmark-management/internal/models"
 )
 
-const codeLength = 8
+const (
+	// codeLength is the length of the generated bookmark code.
+	//
+	// We keep bookmark codes at 8 characters to distinguish them from shortened URL
+	// codes (7 characters) in redirect logic.
+	codeLength = 8
+)
 
 // Create generates a new short code for the given URL and persists the bookmark.
 // It returns the created bookmark with its generated code and database identifier.
