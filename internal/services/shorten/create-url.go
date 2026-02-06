@@ -6,7 +6,7 @@ import "context"
 // It returns the generated code or an error if code generation or storage fails.
 // The expire parameter specifies the expiration time in seconds (0 means default expiration).
 func (s *shortenURL) ShortenURL(ctx context.Context, url string, expire int) (string, error) {
-	code, err := s.keyGen.GenerateCode(codeLength)
+	code, err := s.keyGen.GenerateCode(urlCodeLength)
 	if err != nil {
 		return "", err
 	}

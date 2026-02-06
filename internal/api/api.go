@@ -15,9 +15,11 @@ import (
 	urlHandler "github.com/luongtruong20201/bookmark-management/internal/handlers/shorten"
 	userHandler "github.com/luongtruong20201/bookmark-management/internal/handlers/user"
 	bookmarkRepo "github.com/luongtruong20201/bookmark-management/internal/repositories/bookmark"
+	"github.com/luongtruong20201/bookmark-management/internal/repositories/cache"
 	healthcheckRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/healthcheck"
 	urlRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/url"
 	userRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/user"
+	"github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
 	bookmarkService "github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
 	healthcheckService "github.com/luongtruong20201/bookmark-management/internal/services/healthcheck"
 	passwordService "github.com/luongtruong20201/bookmark-management/internal/services/password"
@@ -47,7 +49,7 @@ type handlers struct {
 	healthCheck healthcheckHandler.Healthcheck
 	shorten     shortenHandler.ShortenURL
 	user        userHandler.User
-	bookmark bookmarkHandler.Handler
+	bookmark    bookmarkHandler.Handler
 }
 
 // EngineOpts holds the configuration options for creating a new API engine instance.
@@ -111,7 +113,8 @@ func (a *api) initHandlers() *handlers {
 
 	keyGen := stringutils.NewKeyGen()
 	shortenRepo := urlRepository.NewURLStorage(a.redis)
-	shortenSvc := urlService.NewShortenURL(keyGen, shortenRepo)
+	bookmarkRepo := bookmarkRepo.NewBookmark(a.db)
+	shortenSvc := urlService.NewShortenURL(keyGen, shortenRepo, bookmarkRepo)
 	shortenHandler := urlHandler.NewShortenURL(shortenSvc)
 
 	hasher := utils.NewHasher()
@@ -119,16 +122,17 @@ func (a *api) initHandlers() *handlers {
 	userSvc := userService.NewUser(userRepo, hasher, a.jwtGenerator)
 	userHandler := userHandler.NewUser(userSvc)
 
-	bookmarkRepo := bookmarkRepo.NewBookmark(a.db)
 	bookmarkService := bookmarkService.NewBookmarkSvc(bookmarkRepo, keyGen)
-	bookmarkHandler := bookmarkHandler.NewBookmarkHandler(bookmarkService)
+	cacheDB := cache.NewRedisCache(a.redis)
+	bookmarkCache := bookmark.NewBookmarkCache(bookmarkService, cacheDB)
+	bookmarkHandler := bookmarkHandler.NewBookmarkHandler(bookmarkCache)
 
 	return &handlers{
 		password:    passHandler,
 		healthCheck: healthcheckHandler,
 		shorten:     shortenHandler,
 		user:        userHandler,
-		bookmark: bookmarkHandler,
+		bookmark:    bookmarkHandler,
 	}
 }
 

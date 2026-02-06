@@ -75,3 +75,7 @@ generate-rsa-key:
 .PHONY: migrate
 migrate:
 	go run cmd/migrate/main.go
+
+.PHONY: generate
+generate:
+	go generate ./...

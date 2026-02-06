@@ -2,6 +2,7 @@ package url
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	redisPkg "github.com/luongtruong20201/bookmark-management/pkg/redis"
@@ -50,16 +51,62 @@ func TestURLStorage_Get(t *testing.T) {
 			expectedResult: "",
 			expectedError:  redis.ErrClosed,
 		},
+		{
+			name: "empty key",
+			setupRedis: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			expectedResult: "",
+			expectedError:  redis.Nil,
+		},
+		{
+			name: "very long key",
+			setupRedis: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				longKey := "a" + strings.Repeat("x", 1000) + "b"
+				redis.Set(ctx, longKey, "https://example.com", 0)
+				return redis
+			},
+			expectedResult: "https://example.com",
+			expectedError:  nil,
+		},
+		{
+			name: "key with special characters",
+			setupRedis: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				specialKey := "abc-123_test@key"
+				redis.Set(ctx, specialKey, "https://special.com", 0)
+				return redis
+			},
+			expectedResult: "https://special.com",
+			expectedError:  nil,
+		},
 	}
 
 	for _, tc := range testCases {
-		ctx := t.Context()
-		redis := tc.setupRedis(t, ctx)
-		repo := NewURLStorage(redis)
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := t.Context()
+			redis := tc.setupRedis(t, ctx)
+			repo := NewURLStorage(redis)
 
-		res, err := repo.Get(ctx, "1234567")
+			var key string
+			switch tc.name {
+			case "empty key":
+				key = ""
+			case "very long key":
+				key = "a" + strings.Repeat("x", 1000) + "b"
+			case "key with special characters":
+				key = "abc-123_test@key"
+			default:
+				key = "1234567"
+			}
 
-		assert.Equal(t, res, tc.expectedResult)
-		assert.Equal(t, err, tc.expectedError)
+			res, err := repo.Get(ctx, key)
+
+			assert.Equal(t, res, tc.expectedResult)
+			assert.Equal(t, err, tc.expectedError)
+		})
 	}
 }

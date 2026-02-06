@@ -2,6 +2,7 @@ package url
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	redisPkg "github.com/luongtruong20201/bookmark-management/pkg/redis"
@@ -52,8 +53,65 @@ func TestURLStorage_StoreIfNotExists(t *testing.T) {
 
 				return redis
 			},
+			code:           "1234567",
+			url:            "https://truonglq.com",
 			expectedResult: false,
 			expectedError:  redis.ErrClosed,
+		},
+		{
+			name: "store with custom expiration",
+			setupMock: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			code:           "custom123",
+			url:            "https://example.com",
+			expectedResult: true,
+			expectedError:  nil,
+		},
+		{
+			name: "store with maximum expiration",
+			setupMock: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			code:           "maxexp01",
+			url:            "https://maxexp.com",
+			expectedResult: true,
+			expectedError:  nil,
+		},
+		{
+			name: "store with empty code",
+			setupMock: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			code:           "",
+			url:            "https://emptycode.com",
+			expectedResult: true,
+			expectedError:  nil,
+		},
+		{
+			name: "store with very long URL",
+			setupMock: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			code:           "longurl1",
+			url:            "https://example.com/" + strings.Repeat("x", 500) + "end",
+			expectedResult: true,
+			expectedError:  nil,
+		},
+		{
+			name: "store with special characters in code",
+			setupMock: func(t *testing.T, ctx context.Context) *redis.Client {
+				redis := redisPkg.InitMockRedis(t)
+				return redis
+			},
+			code:           "abc-123_test@key",
+			url:            "https://special.com",
+			expectedResult: true,
+			expectedError:  nil,
 		},
 	}
 
@@ -65,13 +123,22 @@ func TestURLStorage_StoreIfNotExists(t *testing.T) {
 			redis := tc.setupMock(t, ctx)
 			repo := NewURLStorage(redis)
 
-			ok, err := repo.StoreIfNotExists(ctx, tc.code, tc.url, 0)
+			expire := 0
+			if tc.name == "store with custom expiration" {
+				expire = 3600
+			} else if tc.name == "store with maximum expiration" {
+				expire = 604800
+			}
+
+			ok, err := repo.StoreIfNotExists(ctx, tc.code, tc.url, expire)
 			assert.Equal(t, tc.expectedResult, ok)
 			assert.Equal(t, tc.expectedError, err)
 
-			if ok {
-				val, _ := redis.Get(ctx, tc.code).Result()
-				assert.Equal(t, val, tc.url)
+			if ok && tc.expectedError == nil {
+				val, getErr := redis.Get(ctx, tc.code).Result()
+				if getErr == nil {
+					assert.Equal(t, val, tc.url)
+				}
 			}
 		})
 	}

@@ -42,22 +42,15 @@ func (h *bookmarkHandler) GetBookmarks(c *gin.Context) {
 	page, pageSize := pagination.ValidateAndNormalize()
 	offset, limit := pagination.ToOffsetLimit()
 
-	bookmarks, err := h.svc.GetBookmarks(c, userId, offset, limit)
+	result, err := h.svc.GetBookmarks(c, userId, offset, limit)
 	if err != nil {
 		log.Error().Err(err).Str("uid", userId).Msg("failed to get bookmarks")
 		c.JSON(http.StatusInternalServerError, response.InternalErrResponse)
 		return
 	}
 
-	total, err := h.svc.CountBookmarks(c, userId)
-	if err != nil {
-		log.Error().Err(err).Str("uid", userId).Msg("failed to count bookmarks")
-		c.JSON(http.StatusInternalServerError, response.InternalErrResponse)
-		return
-	}
-
 	c.JSON(http.StatusOK, getBookmarksResponse{
-		Data:       bookmarks,
-		Pagination: response.NewPaginationMetadata(page, pageSize, total),
+		Data:       result.Data,
+		Pagination: response.NewPaginationMetadata(page, pageSize, result.Total),
 	})
 }

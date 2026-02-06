@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	mockBookmarkRepo "github.com/luongtruong20201/bookmark-management/internal/repositories/bookmark/mocks"
 	mockStorage "github.com/luongtruong20201/bookmark-management/internal/repositories/url/mocks"
 	mockKeyGen "github.com/luongtruong20201/bookmark-management/pkg/stringutils/mocks"
 	"github.com/stretchr/testify/assert"
@@ -33,7 +34,7 @@ func TestShortenURL_ShortenURL(t *testing.T) {
 			},
 			setupKeyGen: func(t *testing.T) *mockKeyGen.KeyGenerator {
 				keyGen := mockKeyGen.NewKeyGenerator(t)
-				keyGen.On("GenerateCode", codeLength).Return("1234567", nil).Once()
+				keyGen.On("GenerateCode", urlCodeLength).Return("1234567", nil).Once()
 
 				return keyGen
 			},
@@ -52,7 +53,7 @@ func TestShortenURL_ShortenURL(t *testing.T) {
 			},
 			setupKeyGen: func(t *testing.T) *mockKeyGen.KeyGenerator {
 				keyGen := mockKeyGen.NewKeyGenerator(t)
-				keyGen.On("GenerateCode", codeLength).Return("1234567", nil).Once()
+				keyGen.On("GenerateCode", urlCodeLength).Return("1234567", nil).Once()
 
 				return keyGen
 			},
@@ -70,7 +71,7 @@ func TestShortenURL_ShortenURL(t *testing.T) {
 			},
 			setupKeyGen: func(t *testing.T) *mockKeyGen.KeyGenerator {
 				keyGen := mockKeyGen.NewKeyGenerator(t)
-				keyGen.On("GenerateCode", codeLength).Return("", errors.New("error")).Once()
+				keyGen.On("GenerateCode", urlCodeLength).Return("", errors.New("error")).Once()
 
 				return keyGen
 			},
@@ -78,6 +79,82 @@ func TestShortenURL_ShortenURL(t *testing.T) {
 			exp:           0,
 			expectedCode:  "",
 			expectedError: errors.New("error"),
+		},
+		{
+			name: "repository storage error",
+			setupRepo: func(t *testing.T, ctx context.Context, url string, exp int) *mockStorage.URLStorage {
+				repo := mockStorage.NewURLStorage(t)
+				repo.On("StoreIfNotExists", ctx, mock.Anything, url, exp).Return(false, errors.New("redis connection failed")).Once()
+
+				return repo
+			},
+			setupKeyGen: func(t *testing.T) *mockKeyGen.KeyGenerator {
+				keyGen := mockKeyGen.NewKeyGenerator(t)
+				keyGen.On("GenerateCode", urlCodeLength).Return("1234567", nil).Once()
+
+				return keyGen
+			},
+			url:           "https://truonglq.com",
+			exp:           0,
+			expectedCode:  "",
+			expectedError: errors.New("redis connection failed"),
+		},
+		{
+			name: "success with custom expiration",
+			setupRepo: func(t *testing.T, ctx context.Context, url string, exp int) *mockStorage.URLStorage {
+				repo := mockStorage.NewURLStorage(t)
+				repo.On("StoreIfNotExists", ctx, mock.Anything, url, exp).Return(true, nil).Once()
+
+				return repo
+			},
+			setupKeyGen: func(t *testing.T) *mockKeyGen.KeyGenerator {
+				keyGen := mockKeyGen.NewKeyGenerator(t)
+				keyGen.On("GenerateCode", urlCodeLength).Return("abcdefg", nil).Once()
+
+				return keyGen
+			},
+			url:           "https://example.com",
+			exp:           3600,
+			expectedCode:  "abcdefg",
+			expectedError: nil,
+		},
+		{
+			name: "success with zero expiration",
+			setupRepo: func(t *testing.T, ctx context.Context, url string, exp int) *mockStorage.URLStorage {
+				repo := mockStorage.NewURLStorage(t)
+				repo.On("StoreIfNotExists", ctx, mock.Anything, url, exp).Return(true, nil).Once()
+
+				return repo
+			},
+			setupKeyGen: func(t *testing.T) *mockKeyGen.KeyGenerator {
+				keyGen := mockKeyGen.NewKeyGenerator(t)
+				keyGen.On("GenerateCode", urlCodeLength).Return("xyz1234", nil).Once()
+
+				return keyGen
+			},
+			url:           "https://test.com",
+			exp:           0,
+			expectedCode:  "xyz1234",
+			expectedError: nil,
+		},
+		{
+			name: "success with maximum expiration",
+			setupRepo: func(t *testing.T, ctx context.Context, url string, exp int) *mockStorage.URLStorage {
+				repo := mockStorage.NewURLStorage(t)
+				repo.On("StoreIfNotExists", ctx, mock.Anything, url, exp).Return(true, nil).Once()
+
+				return repo
+			},
+			setupKeyGen: func(t *testing.T) *mockKeyGen.KeyGenerator {
+				keyGen := mockKeyGen.NewKeyGenerator(t)
+				keyGen.On("GenerateCode", urlCodeLength).Return("maxexp01", nil).Once()
+
+				return keyGen
+			},
+			url:           "https://longurl.com",
+			exp:           604800,
+			expectedCode:  "maxexp01",
+			expectedError: nil,
 		},
 	}
 
@@ -88,7 +165,8 @@ func TestShortenURL_ShortenURL(t *testing.T) {
 			ctx := t.Context()
 			repo := tc.setupRepo(t, ctx, tc.url, tc.exp)
 			keyGen := tc.setupKeyGen(t)
-			svc := NewShortenURL(keyGen, repo)
+			bookmarkRepo := mockBookmarkRepo.NewRepository(t)
+			svc := NewShortenURL(keyGen, repo, bookmarkRepo)
 
 			code, err := svc.ShortenURL(ctx, tc.url, tc.exp)
 

@@ -62,8 +62,10 @@ func TestBookmarkHandler_GetBookmarks(t *testing.T) {
 						UserID:      mockUserID,
 					},
 				}
-				svcMock.On("GetBookmarks", c, mockUserID, 0, 10).Return(bookmarks, nil).Once()
-				svcMock.On("CountBookmarks", c, mockUserID).Return(int64(25), nil).Once()
+				svcMock.On("GetBookmarks", c, mockUserID, 0, 10).Return(&service.GetBookmarksResponse{
+					Data:  bookmarks,
+					Total: 25,
+				}, nil).Once()
 				return svcMock
 			},
 			expectedStatus: http.StatusOK,
@@ -92,8 +94,10 @@ func TestBookmarkHandler_GetBookmarks(t *testing.T) {
 			},
 			setupService: func(t *testing.T, c *gin.Context) service.Service {
 				svcMock := serviceMocks.NewService(t)
-				svcMock.On("GetBookmarks", c, mockUserID, 0, 10).Return([]*model.Bookmark{}, nil).Once()
-				svcMock.On("CountBookmarks", c, mockUserID).Return(int64(0), nil).Once()
+				svcMock.On("GetBookmarks", c, mockUserID, 0, 10).Return(&service.GetBookmarksResponse{
+					Data:  []*model.Bookmark{},
+					Total: 0,
+				}, nil).Once()
 				return svcMock
 			},
 			expectedStatus: http.StatusOK,
@@ -129,8 +133,10 @@ func TestBookmarkHandler_GetBookmarks(t *testing.T) {
 						UserID:      mockUserID,
 					},
 				}
-				svcMock.On("GetBookmarks", c, mockUserID, 0, 10).Return(bookmarks, nil).Once()
-				svcMock.On("CountBookmarks", c, mockUserID).Return(int64(1), nil).Once()
+				svcMock.On("GetBookmarks", c, mockUserID, 0, 10).Return(&service.GetBookmarksResponse{
+					Data:  bookmarks,
+					Total: 1,
+				}, nil).Once()
 				return svcMock
 			},
 			expectedStatus: http.StatusOK,
@@ -168,8 +174,10 @@ func TestBookmarkHandler_GetBookmarks(t *testing.T) {
 						UserID:      mockUserID,
 					},
 				}
-				svcMock.On("GetBookmarks", c, mockUserID, 5, 5).Return(bookmarks, nil).Once()
-				svcMock.On("CountBookmarks", c, mockUserID).Return(int64(10), nil).Once()
+				svcMock.On("GetBookmarks", c, mockUserID, 5, 5).Return(&service.GetBookmarksResponse{
+					Data:  bookmarks,
+					Total: 10,
+				}, nil).Once()
 				return svcMock
 			},
 			expectedStatus: http.StatusOK,
@@ -233,26 +241,14 @@ func TestBookmarkHandler_GetBookmarks(t *testing.T) {
 			},
 		},
 		{
-			name:        "error - CountBookmarks service returns error",
+			name:        "error - GetBookmarks service returns error (e.g., count fails)",
 			queryParams: "?page=1&pageSize=10",
 			setupContext: func(c *gin.Context) {
 				c.Set("claims", jwt.MapClaims{"sub": mockUserID})
 			},
 			setupService: func(t *testing.T, c *gin.Context) service.Service {
 				svcMock := serviceMocks.NewService(t)
-				bookmarks := []*model.Bookmark{
-					{
-						Base: model.Base{
-							ID: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
-						},
-						Description: "Facebook",
-						URL:         "https://www.facebook.com",
-						Code:        "abc1234",
-						UserID:      mockUserID,
-					},
-				}
-				svcMock.On("GetBookmarks", c, mockUserID, 0, 10).Return(bookmarks, nil).Once()
-				svcMock.On("CountBookmarks", c, mockUserID).Return(int64(0), testErrService).Once()
+				svcMock.On("GetBookmarks", c, mockUserID, 0, 10).Return(nil, testErrService).Once()
 				return svcMock
 			},
 			expectedStatus: http.StatusInternalServerError,

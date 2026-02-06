@@ -27,7 +27,6 @@ type PaginationMetadata struct {
 //	metadata := NewPaginationMetadata(2, 10, 25)
 //	// Result: Page=2, PageSize=10, Total=25, TotalPages=3
 func NewPaginationMetadata(page, pageSize int, total int64) PaginationMetadata {
-
 	return PaginationMetadata{
 		Page:     page,
 		PageSize: pageSize,

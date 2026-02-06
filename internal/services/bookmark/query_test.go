@@ -29,7 +29,8 @@ func TestBookmarkService_GetBookmarks(t *testing.T) {
 		setupRepo       func(t *testing.T, ctx context.Context, userID string, offset, limit int) *repoMocks.Repository
 		expectedError   error
 		expectedCount   int
-		verifyBookmarks func(t *testing.T, bookmarks []*model.Bookmark)
+		expectedTotal   int64
+		verifyResponse  func(t *testing.T, resp *GetBookmarksResponse)
 	}{
 		{
 			name:   "success - get bookmarks with pagination",
@@ -59,14 +60,18 @@ func TestBookmarkService_GetBookmarks(t *testing.T) {
 					},
 				}
 				repo.On("GetBookmarks", ctx, userID, offset, limit).Return(bookmarks, nil).Once()
+				repo.On("CountBookmarks", ctx, userID).Return(int64(25), nil).Once()
 				return repo
 			},
 			expectedError: nil,
 			expectedCount: 2,
-			verifyBookmarks: func(t *testing.T, bookmarks []*model.Bookmark) {
-				assert.Len(t, bookmarks, 2)
-				assert.Equal(t, "Facebook", bookmarks[0].Description)
-				assert.Equal(t, "Google", bookmarks[1].Description)
+			expectedTotal: 25,
+			verifyResponse: func(t *testing.T, resp *GetBookmarksResponse) {
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Data, 2)
+				assert.Equal(t, int64(25), resp.Total)
+				assert.Equal(t, "Facebook", resp.Data[0].Description)
+				assert.Equal(t, "Google", resp.Data[1].Description)
 			},
 		},
 		{
@@ -77,16 +82,20 @@ func TestBookmarkService_GetBookmarks(t *testing.T) {
 			setupRepo: func(t *testing.T, ctx context.Context, userID string, offset, limit int) *repoMocks.Repository {
 				repo := repoMocks.NewRepository(t)
 				repo.On("GetBookmarks", ctx, userID, offset, limit).Return([]*model.Bookmark{}, nil).Once()
+				repo.On("CountBookmarks", ctx, userID).Return(int64(0), nil).Once()
 				return repo
 			},
 			expectedError: nil,
 			expectedCount: 0,
-			verifyBookmarks: func(t *testing.T, bookmarks []*model.Bookmark) {
-				assert.Empty(t, bookmarks)
+			expectedTotal: 0,
+			verifyResponse: func(t *testing.T, resp *GetBookmarksResponse) {
+				assert.NotNil(t, resp)
+				assert.Empty(t, resp.Data)
+				assert.Equal(t, int64(0), resp.Total)
 			},
 		},
 		{
-			name:   "error - repository returns error",
+			name:   "error - repository GetBookmarks returns error",
 			userID: mockUserID,
 			offset: 0,
 			limit:  10,
@@ -97,7 +106,35 @@ func TestBookmarkService_GetBookmarks(t *testing.T) {
 			},
 			expectedError:   testErrDatabase,
 			expectedCount:   0,
-			verifyBookmarks: nil,
+			expectedTotal:   0,
+			verifyResponse:  nil,
+		},
+		{
+			name:   "error - repository CountBookmarks returns error",
+			userID: mockUserID,
+			offset: 0,
+			limit:  10,
+			setupRepo: func(t *testing.T, ctx context.Context, userID string, offset, limit int) *repoMocks.Repository {
+				repo := repoMocks.NewRepository(t)
+				bookmarks := []*model.Bookmark{
+					{
+						Base: model.Base{
+							ID: "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+						},
+						Description: "Facebook",
+						URL:         "https://www.facebook.com",
+						Code:        "abc1234",
+						UserID:      userID,
+					},
+				}
+				repo.On("GetBookmarks", ctx, userID, offset, limit).Return(bookmarks, nil).Once()
+				repo.On("CountBookmarks", ctx, userID).Return(int64(0), testErrDatabase).Once()
+				return repo
+			},
+			expectedError:   testErrDatabase,
+			expectedCount:   0,
+			expectedTotal:   0,
+			verifyResponse:  nil,
 		},
 		{
 			name:   "success - with offset",
@@ -118,13 +155,17 @@ func TestBookmarkService_GetBookmarks(t *testing.T) {
 					},
 				}
 				repo.On("GetBookmarks", ctx, userID, offset, limit).Return(bookmarks, nil).Once()
+				repo.On("CountBookmarks", ctx, userID).Return(int64(15), nil).Once()
 				return repo
 			},
 			expectedError: nil,
 			expectedCount: 1,
-			verifyBookmarks: func(t *testing.T, bookmarks []*model.Bookmark) {
-				assert.Len(t, bookmarks, 1)
-				assert.Equal(t, "GitHub", bookmarks[0].Description)
+			expectedTotal: 15,
+			verifyResponse: func(t *testing.T, resp *GetBookmarksResponse) {
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Data, 1)
+				assert.Equal(t, int64(15), resp.Total)
+				assert.Equal(t, "GitHub", resp.Data[0].Description)
 			},
 		},
 	}
@@ -138,16 +179,18 @@ func TestBookmarkService_GetBookmarks(t *testing.T) {
 			keyGen := mockKeyGen.NewKeyGenerator(t)
 			svc := NewBookmarkSvc(repo, keyGen)
 
-			bookmarks, err := svc.GetBookmarks(ctx, tc.userID, tc.offset, tc.limit)
+			result, err := svc.GetBookmarks(ctx, tc.userID, tc.offset, tc.limit)
 
 			if tc.expectedError != nil {
 				assert.ErrorIs(t, err, tc.expectedError)
-				assert.Nil(t, bookmarks)
+				assert.Nil(t, result)
 			} else {
 				assert.NoError(t, err)
-				assert.Len(t, bookmarks, tc.expectedCount)
-				if tc.verifyBookmarks != nil {
-					tc.verifyBookmarks(t, bookmarks)
+				assert.NotNil(t, result)
+				assert.Len(t, result.Data, tc.expectedCount)
+				assert.Equal(t, tc.expectedTotal, result.Total)
+				if tc.verifyResponse != nil {
+					tc.verifyResponse(t, result)
 				}
 			}
 		})
@@ -163,7 +206,8 @@ func TestBookmarkService_GetBookmarks_WithFixture(t *testing.T) {
 		offset          int
 		limit           int
 		expectedCount   int
-		verifyBookmarks func(t *testing.T, bookmarks []*model.Bookmark)
+		expectedTotal   int64
+		verifyResponse  func(t *testing.T, resp *GetBookmarksResponse)
 	}{
 		{
 			name:          "success - get bookmarks with fixture",
@@ -171,10 +215,13 @@ func TestBookmarkService_GetBookmarks_WithFixture(t *testing.T) {
 			offset:        0,
 			limit:         10,
 			expectedCount: 2,
-			verifyBookmarks: func(t *testing.T, bookmarks []*model.Bookmark) {
-				assert.Len(t, bookmarks, 2)
-				assert.Equal(t, "Facebook - Social Media Platform", bookmarks[0].Description)
-				assert.Equal(t, "Google - Search Engine", bookmarks[1].Description)
+			expectedTotal: 2,
+			verifyResponse: func(t *testing.T, resp *GetBookmarksResponse) {
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Data, 2)
+				assert.Equal(t, int64(2), resp.Total)
+				assert.Equal(t, "Facebook - Social Media Platform", resp.Data[0].Description)
+				assert.Equal(t, "Google - Search Engine", resp.Data[1].Description)
 			},
 		},
 		{
@@ -183,9 +230,12 @@ func TestBookmarkService_GetBookmarks_WithFixture(t *testing.T) {
 			offset:        0,
 			limit:         1,
 			expectedCount: 1,
-			verifyBookmarks: func(t *testing.T, bookmarks []*model.Bookmark) {
-				assert.Len(t, bookmarks, 1)
-				assert.Equal(t, "GitHub - Code Repository", bookmarks[0].Description)
+			expectedTotal: 2,
+			verifyResponse: func(t *testing.T, resp *GetBookmarksResponse) {
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Data, 1)
+				assert.Equal(t, int64(2), resp.Total)
+				assert.Equal(t, "GitHub - Code Repository", resp.Data[0].Description)
 			},
 		},
 		{
@@ -194,9 +244,12 @@ func TestBookmarkService_GetBookmarks_WithFixture(t *testing.T) {
 			offset:        1,
 			limit:         10,
 			expectedCount: 1,
-			verifyBookmarks: func(t *testing.T, bookmarks []*model.Bookmark) {
-				assert.Len(t, bookmarks, 1)
-				assert.Equal(t, "YouTube - Video Platform", bookmarks[0].Description)
+			expectedTotal: 2,
+			verifyResponse: func(t *testing.T, resp *GetBookmarksResponse) {
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Data, 1)
+				assert.Equal(t, int64(2), resp.Total)
+				assert.Equal(t, "YouTube - Video Platform", resp.Data[0].Description)
 			},
 		},
 		{
@@ -205,8 +258,11 @@ func TestBookmarkService_GetBookmarks_WithFixture(t *testing.T) {
 			offset:        0,
 			limit:         10,
 			expectedCount: 0,
-			verifyBookmarks: func(t *testing.T, bookmarks []*model.Bookmark) {
-				assert.Empty(t, bookmarks)
+			expectedTotal: 0,
+			verifyResponse: func(t *testing.T, resp *GetBookmarksResponse) {
+				assert.NotNil(t, resp)
+				assert.Empty(t, resp.Data)
+				assert.Equal(t, int64(0), resp.Total)
 			},
 		},
 		{
@@ -215,9 +271,12 @@ func TestBookmarkService_GetBookmarks_WithFixture(t *testing.T) {
 			offset:        0,
 			limit:         10,
 			expectedCount: 2,
-			verifyBookmarks: func(t *testing.T, bookmarks []*model.Bookmark) {
-				assert.Len(t, bookmarks, 2)
-				for _, bookmark := range bookmarks {
+			expectedTotal: 2,
+			verifyResponse: func(t *testing.T, resp *GetBookmarksResponse) {
+				assert.NotNil(t, resp)
+				assert.Len(t, resp.Data, 2)
+				assert.Equal(t, int64(2), resp.Total)
+				for _, bookmark := range resp.Data {
 					assert.Equal(t, "550e8400-e29b-41d4-a716-446655440000", bookmark.UserID)
 				}
 			},
@@ -234,12 +293,14 @@ func TestBookmarkService_GetBookmarks_WithFixture(t *testing.T) {
 			keyGen := mockKeyGen.NewKeyGenerator(t)
 			svc := NewBookmarkSvc(repo, keyGen)
 
-			bookmarks, err := svc.GetBookmarks(ctx, tc.userID, tc.offset, tc.limit)
+			result, err := svc.GetBookmarks(ctx, tc.userID, tc.offset, tc.limit)
 
 			assert.NoError(t, err)
-			assert.Len(t, bookmarks, tc.expectedCount)
-			if tc.verifyBookmarks != nil {
-				tc.verifyBookmarks(t, bookmarks)
+			assert.NotNil(t, result)
+			assert.Len(t, result.Data, tc.expectedCount)
+			assert.Equal(t, tc.expectedTotal, result.Total)
+			if tc.verifyResponse != nil {
+				tc.verifyResponse(t, result)
 			}
 		})
 	}

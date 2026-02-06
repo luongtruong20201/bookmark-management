@@ -12,6 +12,7 @@ import (
 )
 
 func TestPasswordHandler_GenPass(t *testing.T) {
+	gin.SetMode(gin.TestMode)
 	t.Parallel()
 
 	testCases := []struct {

@@ -37,7 +37,7 @@ func (f *BookmarkCommonTestDB) GenerateData() error {
 			},
 			Description: "Facebook - Social Media Platform",
 			URL:         "https://www.facebook.com",
-			Code:        "abc1234",
+			Code:        "abc12345",
 			UserID:      "9b5c1e3e-7c3b-4f4e-8e7c-6e7a2f5d3a91",
 		},
 		{
@@ -46,7 +46,7 @@ func (f *BookmarkCommonTestDB) GenerateData() error {
 			},
 			Description: "Google - Search Engine",
 			URL:         "https://www.google.com",
-			Code:        "def5678",
+			Code:        "def56789",
 			UserID:      "9b5c1e3e-7c3b-4f4e-8e7c-6e7a2f5d3a91",
 		},
 		{
@@ -55,7 +55,7 @@ func (f *BookmarkCommonTestDB) GenerateData() error {
 			},
 			Description: "GitHub - Code Repository",
 			URL:         "https://github.com",
-			Code:        "ghi9012",
+			Code:        "ghi90123",
 			UserID:      "2f6c9d14-9e42-4c31-9e6a-0f8c4b2a7c55",
 		},
 		{
@@ -64,7 +64,7 @@ func (f *BookmarkCommonTestDB) GenerateData() error {
 			},
 			Description: "YouTube - Video Platform",
 			URL:         "https://youtube.com",
-			Code:        "jkl3456",
+			Code:        "jkl34567",
 			UserID:      "2f6c9d14-9e42-4c31-9e6a-0f8c4b2a7c55",
 		},
 		{
@@ -73,7 +73,7 @@ func (f *BookmarkCommonTestDB) GenerateData() error {
 			},
 			Description: "Stack Overflow - Q&A for Developers",
 			URL:         "https://stackoverflow.com",
-			Code:        "mno7890",
+			Code:        "mno78901",
 			UserID:      "e3c2a8f1-1d3b-4c62-8e54-6b7f9a2d1c90",
 		},
 		{
@@ -82,7 +82,7 @@ func (f *BookmarkCommonTestDB) GenerateData() error {
 			},
 			Description: "Golang - Programming Language",
 			URL:         "https://go.dev",
-			Code:        "pqr1234",
+			Code:        "pqr12345",
 			UserID:      "e3c2a8f1-1d3b-4c62-8e54-6b7f9a2d1c90",
 		},
 		{
@@ -91,7 +91,7 @@ func (f *BookmarkCommonTestDB) GenerateData() error {
 			},
 			Description: "Personal Blog",
 			URL:         "https://johndoe.example.com",
-			Code:        "stu5678",
+			Code:        "stu56789",
 			UserID:      "550e8400-e29b-41d4-a716-446655440000",
 		},
 		{
@@ -100,7 +100,7 @@ func (f *BookmarkCommonTestDB) GenerateData() error {
 			},
 			Description: "LinkedIn Profile",
 			URL:         "https://linkedin.com/in/johndoe",
-			Code:        "vwx9012",
+			Code:        "vwx90123",
 			UserID:      "550e8400-e29b-41d4-a716-446655440000",
 		},
 	}
