@@ -67,8 +67,8 @@ func TestBookmarkHandler_DeleteBookmark(t *testing.T) {
 			verifyResponse: nil,
 		},
 		{
-			name:       "error - missing user ID in token",
-			bookmarkID: FixtureBookmarkIDFacebook,
+			name:         "error - missing user ID in token",
+			bookmarkID:   FixtureBookmarkIDFacebook,
 			setupContext: func(c *gin.Context) {},
 			setupService: func(t *testing.T, c *gin.Context) service.Service {
 				return serviceMocks.NewService(t)
@@ -159,7 +159,7 @@ func TestBookmarkHandler_DeleteBookmark(t *testing.T) {
 
 			tc.setupContext(ctx)
 			svc := tc.setupService(t, ctx)
-			h := NewBookmarkHandler(svc)
+			h := NewBookmarkHandler(svc, nil)
 
 			h.DeleteBookmark(ctx)
 
@@ -170,4 +170,3 @@ func TestBookmarkHandler_DeleteBookmark(t *testing.T) {
 		})
 	}
 }
-

@@ -12,9 +12,9 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	model "github.com/luongtruong20201/bookmark-management/internal/models"
 	service "github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
+	queueMocks "github.com/luongtruong20201/bookmark-management/internal/services/queue/mocks"
 	serviceMocks "github.com/luongtruong20201/bookmark-management/internal/services/bookmark/mocks"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestBookmarkHandler_Create(t *testing.T) {
@@ -101,10 +101,7 @@ func TestBookmarkHandler_Create(t *testing.T) {
 			},
 			setupContext: func(c *gin.Context) {},
 			setupService: func(t *testing.T, c *gin.Context) service.Service {
-				svcMock := serviceMocks.NewService(t)
-				svcMock.On("Create", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-					Return(nil, testErrService).Maybe()
-				return svcMock
+				return serviceMocks.NewService(t)
 			},
 			expectedStatus: http.StatusUnauthorized,
 			verifyResponse: nil,
@@ -157,7 +154,8 @@ func TestBookmarkHandler_Create(t *testing.T) {
 
 			tc.setupContext(ctx)
 			svc := tc.setupService(t, ctx)
-			h := NewBookmarkHandler(svc)
+			queueSvc := queueMocks.NewService(t)
+			h := NewBookmarkHandler(svc, queueSvc)
 
 			h.Create(ctx)
 

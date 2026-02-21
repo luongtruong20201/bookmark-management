@@ -17,12 +17,14 @@ import (
 	bookmarkRepo "github.com/luongtruong20201/bookmark-management/internal/repositories/bookmark"
 	"github.com/luongtruong20201/bookmark-management/internal/repositories/cache"
 	healthcheckRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/healthcheck"
+	queueRepo "github.com/luongtruong20201/bookmark-management/internal/repositories/queue"
 	urlRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/url"
 	userRepository "github.com/luongtruong20201/bookmark-management/internal/repositories/user"
 	"github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
 	bookmarkService "github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
 	healthcheckService "github.com/luongtruong20201/bookmark-management/internal/services/healthcheck"
 	passwordService "github.com/luongtruong20201/bookmark-management/internal/services/password"
+	queueService "github.com/luongtruong20201/bookmark-management/internal/services/queue"
 	urlService "github.com/luongtruong20201/bookmark-management/internal/services/shorten"
 	userService "github.com/luongtruong20201/bookmark-management/internal/services/user"
 	jwtPkg "github.com/luongtruong20201/bookmark-management/pkg/jwt"
@@ -125,7 +127,11 @@ func (a *api) initHandlers() *handlers {
 	bookmarkService := bookmarkService.NewBookmarkSvc(bookmarkRepo, keyGen)
 	cacheDB := cache.NewRedisCache(a.redis)
 	bookmarkCache := bookmark.NewBookmarkCache(bookmarkService, cacheDB)
-	bookmarkHandler := bookmarkHandler.NewBookmarkHandler(bookmarkCache)
+
+	queueRepository := queueRepo.NewRedisQueue(a.redis, queueRepo.QueueNameBookmarkImport)
+	queueSvc := queueService.NewService(queueRepository)
+
+	bookmarkHandler := bookmarkHandler.NewBookmarkHandler(bookmarkCache, queueSvc)
 
 	return &handlers{
 		password:    passHandler,
@@ -165,6 +171,7 @@ func (a *api) initRoutes() {
 		v1Private.POST("/bookmarks", handlers.bookmark.Create)
 		v1Private.PUT("/bookmarks/:id", handlers.bookmark.UpdateBookmark)
 		v1Private.DELETE("/bookmarks/:id", handlers.bookmark.DeleteBookmark)
+		v1Private.POST("/bookmarks/import", handlers.bookmark.ImportBookmarks)
 	}
 
 	a.app.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

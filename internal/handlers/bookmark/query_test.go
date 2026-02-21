@@ -12,6 +12,7 @@ import (
 	model "github.com/luongtruong20201/bookmark-management/internal/models"
 	service "github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
 	serviceMocks "github.com/luongtruong20201/bookmark-management/internal/services/bookmark/mocks"
+	queueMocks "github.com/luongtruong20201/bookmark-management/internal/services/queue/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -286,7 +287,8 @@ func TestBookmarkHandler_GetBookmarks(t *testing.T) {
 
 			tc.setupContext(ctx)
 			svc := tc.setupService(t, ctx)
-			h := NewBookmarkHandler(svc)
+			queueSvc := queueMocks.NewService(t)
+			h := NewBookmarkHandler(svc, queueSvc)
 
 			h.GetBookmarks(ctx)
 
