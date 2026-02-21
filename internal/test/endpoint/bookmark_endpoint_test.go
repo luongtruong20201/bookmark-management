@@ -3,6 +3,7 @@ package endpoint
 import (
 	"bytes"
 	"encoding/json"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -209,15 +210,13 @@ func TestBookmarkEndpoint_GetBookmarks(t *testing.T) {
 
 	const mockUserID = "550e8400-e29b-41d4-a716-446655440000"
 
-	type testCase struct {
+	testCases := []struct {
 		name           string
 		setupHTTP      func(api.Engine, string) *httptest.ResponseRecorder
 		setupJWT       func(t *testing.T, userID string) (jwtPkg.JWTGenerator, jwtPkg.JWTValidator, string)
 		expectedStatus int
 		verifyBody     func(t *testing.T, body map[string]any)
-	}
-
-	tests := []testCase{
+	}{
 		{
 			name: "success - get bookmarks with pagination",
 			setupHTTP: func(app api.Engine, token string) *httptest.ResponseRecorder {
@@ -485,7 +484,7 @@ func TestBookmarkEndpoint_GetBookmarks(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -820,7 +819,7 @@ func TestBookmarkEndpoint_DeleteBookmark(t *testing.T) {
 		fixtureBookmarkIDFacebook = "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"
 	)
 
-	tests := []struct {
+	testCases := []struct {
 		name           string
 		setupHTTP      func(api.Engine, string) *httptest.ResponseRecorder
 		setupJWT       func(t *testing.T, userID string) (jwtPkg.JWTGenerator, jwtPkg.JWTValidator, string)
@@ -941,7 +940,7 @@ func TestBookmarkEndpoint_DeleteBookmark(t *testing.T) {
 		},
 	}
 
-	for _, tc := range tests {
+	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
@@ -980,6 +979,126 @@ func TestBookmarkEndpoint_DeleteBookmark(t *testing.T) {
 			if tc.verifyDB != nil {
 				tc.verifyDB(t, db)
 			}
+		})
+	}
+}
+
+func buildMultipartRequestWithToken(t *testing.T, method, target, fieldName, filename, content, token string) (*httptest.ResponseRecorder, *http.Request) {
+	t.Helper()
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	part, err := writer.CreateFormFile(fieldName, filename)
+	assert.NoError(t, err)
+
+	_, err = part.Write([]byte(content))
+	assert.NoError(t, err)
+
+	assert.NoError(t, writer.Close())
+
+	req := httptest.NewRequest(method, target, body)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+
+	rec := httptest.NewRecorder()
+	return rec, req
+}
+
+func setupAPIForImportTests(t *testing.T, cfg *api.Config, userID string, token string) api.Engine {
+	db := fixture.NewFixture(t, &fixture.BookmarkCommonTestDB{})
+	jwtGen := jwtMocks.NewJWTGenerator(t)
+	jwtVal := jwtMocks.NewJWTValidator(t)
+	if token != "" {
+		jwtVal.On("ValidateToken", token).Return(jwt.MapClaims{
+			"sub": userID,
+			"iat": 1600000000,
+			"exp": 1600086400,
+		}, nil).Once()
+	}
+	redis := redisPkg.InitMockRedis(t)
+
+	return api.New(&api.EngineOpts{
+		Engine:       gin.New(),
+		DB:           db,
+		Redis:        redis,
+		JWTGenerator: jwtGen,
+		JWTValidator: jwtVal,
+		Cfg:          cfg,
+	})
+}
+
+func TestBookmarkEndpoint_ImportBookmarks(t *testing.T) {
+	gin.SetMode(gin.TestMode)
+	t.Parallel()
+
+	cfg := &api.Config{
+		AppPort:     "8080",
+		ServiceName: "bookmark-service",
+		InstanceId:  "instance-1",
+	}
+
+	const mockUserID = "550e8400-e29b-41d4-a716-446655440000"
+
+	testCases := []struct {
+		name           string
+		token          string
+		setupApp       func(t *testing.T, token string) api.Engine
+		buildRequest   func(t *testing.T, token string) (*httptest.ResponseRecorder, *http.Request)
+		expectedStatus int
+	}{
+		{
+			name:  "success - import valid CSV with auth",
+			token: "valid-import-token",
+			setupApp: func(t *testing.T, token string) api.Engine {
+				return setupAPIForImportTests(t, cfg, mockUserID, token)
+			},
+			buildRequest: func(t *testing.T, token string) (*httptest.ResponseRecorder, *http.Request) {
+				csvContent := "description,url\nMy blog,https://truonglq.com\n"
+				rec, req := buildMultipartRequestWithToken(t, http.MethodPost, "/v1/bookmarks/import", "file", "bookmarks.csv", csvContent, token)
+				return rec, req
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name: "error - missing Authorization header",
+			setupApp: func(t *testing.T, token string) api.Engine {
+				return setupAPIForImportTests(t, cfg, mockUserID, "")
+			},
+			buildRequest: func(t *testing.T, token string) (*httptest.ResponseRecorder, *http.Request) {
+				csvContent := "description,url\nMy blog,https://truonglq.com\n"
+				rec, req := buildMultipartRequestWithToken(t, http.MethodPost, "/v1/bookmarks/import", "file", "bookmarks.csv", csvContent, "")
+				return rec, req
+			},
+			expectedStatus: http.StatusUnauthorized,
+		},
+		{
+			name:  "error - invalid CSV content",
+			token: "invalid-csv-token",
+			setupApp: func(t *testing.T, token string) api.Engine {
+				return setupAPIForImportTests(t, cfg, mockUserID, token)
+			},
+			buildRequest: func(t *testing.T, token string) (*httptest.ResponseRecorder, *http.Request) {
+				csvContent := "wrong_header\nvalue\n"
+				rec, req := buildMultipartRequestWithToken(t, http.MethodPost, "/v1/bookmarks/import", "file", "invalid.csv", csvContent, token)
+				return rec, req
+			},
+			expectedStatus: http.StatusBadRequest,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			app := tc.setupApp(t, tc.token)
+			rec, req := tc.buildRequest(t, tc.token)
+
+			app.ServeHTTP(rec, req)
+
+			assert.Equal(t, tc.expectedStatus, rec.Code)
 		})
 	}
 }

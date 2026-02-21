@@ -385,6 +385,42 @@ paths:
       summary: Update bookmark
       tags:
       - bookmark
+  /v1/bookmarks/import:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Import multiple bookmarks from a CSV file for the authenticated
+        user
+      parameters:
+      - description: CSV file containing bookmarks to import
+        in: formData
+        name: file
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Processing import
+          schema:
+            $ref: '#/definitions/response.Message'
+        "400":
+          description: Invalid file
+          schema:
+            $ref: '#/definitions/response.Message'
+        "401":
+          description: Unauthorized (missing/invalid token)
+          schema:
+            $ref: '#/definitions/response.Message'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Message'
+      security:
+      - BearerAuth: []
+      summary: Import bookmarks
+      tags:
+      - bookmark
   /v1/links/{code}:
     get:
       consumes:

@@ -11,6 +11,10 @@ import (
 	"github.com/luongtruong20201/bookmark-management/pkg/response"
 )
 
+var (
+	inputValidator = validator.New(validator.WithRequiredStructEnabled())
+)
+
 // BindInputFromRequest binds and validates all supported input sources (JSON body,
 // URI params, query params, and headers) into a typed struct T. On validation
 // failure it writes a 400 response using response.InputFieldError and aborts
@@ -42,9 +46,7 @@ func BindInputFromRequest[T any](c *gin.Context) (*T, error) {
 		return nil, err
 	}
 
-	validate := validator.New(validator.WithRequiredStructEnabled())
-
-	if err := validate.Struct(reqInput); err != nil {
+	if err := inputValidator.Struct(reqInput); err != nil {
 		c.JSON(http.StatusBadRequest, response.InputFieldError(err))
 		c.Abort()
 		return nil, err
@@ -140,4 +142,12 @@ func BindInputFromUriWithAuth[T any](c *gin.Context) (*T, string, error) {
 	}
 
 	return reqInput, userId, nil
+}
+
+// ValidateStruct validates the struct or slice at data using the playground
+// validator with the "dive" tag, so nested structs and slice elements are
+// validated according to their validate struct tags (e.g. required, url, min).
+// Returns the first validation error encountered, or nil if valid.
+func ValidateStruct(data any) error {
+	return inputValidator.Var(data, "dive")
 }
