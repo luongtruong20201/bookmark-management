@@ -123,6 +123,24 @@ func (_m *Service) GetBookmarks(ctx context.Context, userID string, offset int, 
 	return r0, r1
 }
 
+// ImportBookmarks provides a mock function with given fields: ctx, userID, items
+func (_m *Service) ImportBookmarks(ctx context.Context, userID string, items []*bookmark.ImportBookmarkItem) error {
+	ret := _m.Called(ctx, userID, items)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ImportBookmarks")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []*bookmark.ImportBookmarkItem) error); ok {
+		r0 = rf(ctx, userID, items)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: ctx, bookmarkID, userID, description, url
 func (_m *Service) Update(ctx context.Context, bookmarkID string, userID string, description string, url string) (*model.Bookmark, error) {
 	ret := _m.Called(ctx, bookmarkID, userID, description, url)

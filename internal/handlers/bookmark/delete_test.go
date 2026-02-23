@@ -11,6 +11,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	service "github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
 	serviceMocks "github.com/luongtruong20201/bookmark-management/internal/services/bookmark/mocks"
+	queueMocks "github.com/luongtruong20201/bookmark-management/internal/services/queue/mocks"
 	"github.com/luongtruong20201/bookmark-management/pkg/dbutils"
 	"github.com/stretchr/testify/assert"
 )
@@ -159,7 +160,8 @@ func TestBookmarkHandler_DeleteBookmark(t *testing.T) {
 
 			tc.setupContext(ctx)
 			svc := tc.setupService(t, ctx)
-			h := NewBookmarkHandler(svc, nil)
+			queueSvc := queueMocks.NewService(t)
+			h := NewBookmarkHandler(svc, queueSvc)
 
 			h.DeleteBookmark(ctx)
 

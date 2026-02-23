@@ -39,7 +39,6 @@ func TestSendBookmarkJob(t *testing.T) {
 			name: "multiple chunks - two PushMessage calls",
 			uid:  "user-1",
 			bookmarks: func() []*ImportBookmarkInput {
-				// chunkSize is 100: need 101 bookmarks to get 2 chunks (100 + 1)
 				bookmarks := make([]*ImportBookmarkInput, 101)
 				for i := 0; i < 101; i++ {
 					bookmarks[i] = &ImportBookmarkInput{URL: "https://example.com"}
@@ -59,8 +58,8 @@ func TestSendBookmarkJob(t *testing.T) {
 			expectedError: "",
 		},
 		{
-			name: "error on PushMessage propagates",
-			uid:  "user-1",
+			name:      "error on PushMessage propagates",
+			uid:       "user-1",
 			bookmarks: []*ImportBookmarkInput{{URL: "https://1.com"}},
 			expectedPushMsg: func() [][]byte {
 				b, _ := json.Marshal(&ImportMessage{UID: "user-1", Bookmarks: []*ImportBookmarkInput{{URL: "https://1.com"}}})

@@ -1,9 +1,11 @@
-version: "3.0"
+version: "3.8"
 
 services:
   redis:
     image: redis:alpine
     container_name: redis
+    ports:
+      - "6379:6379"
     networks:
       - bookmark_network
     volumes:
@@ -15,13 +17,19 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - /postgres_data:/var/lib/postgresql/data:z
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - bookmark_network
     environment:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_USER=postgres
       - POSTGRES_DB=bookmark_service
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bookmark_service"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
 
   bookmark_service:
     container_name: bookmark_service
@@ -29,13 +37,48 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      target: final-service
     ports:
       - "8080:8080"
     environment:
-      - REDIS_ADDR=redis:6379
+      - REDIS_ADDRESS=redis:6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=bookmark_service
+    volumes:
+      - ./private.pem:/app/private.pem:ro
+      - ./public.pem:/app/public.pem:ro
     depends_on:
-      - redis
-      - postgres
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    networks:
+      - bookmark_network
+
+  bookmark_worker:
+    container_name: bookmark_worker
+    image: bookmark_worker:dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: final-worker
+    environment:
+      - REDIS_ADDRESS=redis:6379
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - DB_NAME=bookmark_service
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      bookmark_service:
+        condition: service_started
     networks:
       - bookmark_network
 
@@ -46,3 +89,4 @@ networks:
 
 volumes:
   redis_data:
+  postgres_data:

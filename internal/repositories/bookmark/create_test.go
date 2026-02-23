@@ -1,7 +1,7 @@
 package bookmark
 
 import (
-	"context"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -9,6 +9,7 @@ import (
 	"github.com/luongtruong20201/bookmark-management/internal/test/fixture"
 	"github.com/luongtruong20201/bookmark-management/pkg/dbutils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"gorm.io/gorm"
 )
 
@@ -96,7 +97,7 @@ func TestRepository_CreateBookmark(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			ctx := context.Background()
+			ctx := t.Context()
 			db := fixture.NewFixture(t, &fixture.BookmarkCommonTestDB{})
 			repo := NewBookmark(db)
 
@@ -122,6 +123,79 @@ func TestRepository_CreateBookmark(t *testing.T) {
 				}
 				if tc.verifyFunc != nil {
 					tc.verifyFunc(t, db, res)
+				}
+			}
+		})
+	}
+}
+
+func TestRepository_CreateBookmarksBatch(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name          string
+		bookmarks     []*model.Bookmark
+		expectedError bool
+	}{
+		{
+			name:          "empty - slice empty returns nil",
+			bookmarks:     nil,
+			expectedError: false,
+		},
+		{
+			name:          "empty - slice empty returns nil",
+			bookmarks:     []*model.Bookmark{},
+			expectedError: false,
+		},
+		{
+			name: "success - batch insert",
+			bookmarks: []*model.Bookmark{
+				{Description: "Batch 1", URL: "https://batch1.com", Code: "batch01", UserID: "550e8400-e29b-41d4-a716-446655440000"},
+				{Description: "Batch 2", URL: "https://batch2.com", Code: "batch02", UserID: "550e8400-e29b-41d4-a716-446655440000"},
+				{Description: "Batch 3", URL: "https://batch3.com", Code: "batch03", UserID: "550e8400-e29b-41d4-a716-446655440000"},
+			},
+			expectedError: false,
+		},
+		{
+			name: "success - batch larger than batch size",
+			bookmarks: func() []*model.Bookmark {
+				out := make([]*model.Bookmark, 0, 105)
+				for i := 0; i < 105; i++ {
+					out = append(out, &model.Bookmark{
+						Description: "Batch large",
+						URL:         "https://batch-large.com",
+						Code:        fmt.Sprintf("largebatch%03d", i),
+						UserID:      "550e8400-e29b-41d4-a716-446655440000",
+					})
+				}
+				return out
+			}(),
+			expectedError: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			ctx := t.Context()
+			db := fixture.NewFixture(t, &fixture.BookmarkCommonTestDB{})
+			repo := NewBookmark(db)
+
+			err := repo.CreateBookmarksBatch(ctx, tc.bookmarks)
+
+			if tc.expectedError {
+				require.Error(t, err)
+				return
+			}
+			require.NoError(t, err)
+			if len(tc.bookmarks) > 0 {
+				for _, b := range tc.bookmarks {
+					var stored model.Bookmark
+					err := db.Where("code = ?", b.Code).First(&stored).Error
+					assert.NoError(t, err)
+					assert.Equal(t, b.Description, stored.Description)
+					assert.Equal(t, b.URL, stored.URL)
+					assert.Equal(t, b.UserID, stored.UserID)
 				}
 			}
 		})

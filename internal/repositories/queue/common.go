@@ -1,6 +1,9 @@
 package queue
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 // Queue name constants for Redis list keys.
 const (
@@ -15,4 +18,9 @@ const (
 type Repository interface {
 	// PushMessage enqueues the given message bytes into the queue.
 	PushMessage(ctx context.Context, msg []byte) error
+	PopMessage(ctx context.Context) ([]byte, error)
 }
+
+var (
+	ErrNoMessage = errors.New("no message")
+)

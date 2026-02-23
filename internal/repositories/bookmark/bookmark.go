@@ -13,6 +13,7 @@ import (
 //go:generate mockery --name Repository --filename bookmark.go
 type Repository interface {
 	CreateBookmark(ctx context.Context, bookmark *model.Bookmark) (*model.Bookmark, error)
+	CreateBookmarksBatch(ctx context.Context, bookmarks []*model.Bookmark) error
 	GetBookmarks(ctx context.Context, userID string, offset, limit int) ([]*model.Bookmark, error)
 	CountBookmarks(ctx context.Context, userID string) (int64, error)
 	UpdateBookmark(ctx context.Context, bookmarkID, userID string, updates *model.Bookmark) (*model.Bookmark, error)
