@@ -72,6 +72,24 @@ func (_m *Repository) CreateBookmark(ctx context.Context, _a1 *model.Bookmark) (
 	return r0, r1
 }
 
+// CreateBookmarksBatch provides a mock function with given fields: ctx, bookmarks
+func (_m *Repository) CreateBookmarksBatch(ctx context.Context, bookmarks []*model.Bookmark) error {
+	ret := _m.Called(ctx, bookmarks)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CreateBookmarksBatch")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, []*model.Bookmark) error); ok {
+		r0 = rf(ctx, bookmarks)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteBookmark provides a mock function with given fields: ctx, bookmarkID, userID
 func (_m *Repository) DeleteBookmark(ctx context.Context, bookmarkID string, userID string) error {
 	ret := _m.Called(ctx, bookmarkID, userID)

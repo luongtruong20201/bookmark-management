@@ -48,11 +48,11 @@ func TestBookmarkHandler_ImportBookmarks(t *testing.T) {
 	successBookmarks := []*queueService.ImportBookmarkInput{{Description: "My blog", URL: "https://truonglq.com"}}
 	nilBookmarks := []*queueService.ImportBookmarkInput(nil)
 	tests := []struct {
-		name                   string
-		buildRequest           func(t *testing.T) (*http.Request, *httptest.ResponseRecorder)
-		expectSendBookmarkJob  *[]*queueService.ImportBookmarkInput
-		expectedStatus         int
-		verifyResponse         func(t *testing.T, rec *httptest.ResponseRecorder)
+		name                  string
+		buildRequest          func(t *testing.T) (*http.Request, *httptest.ResponseRecorder)
+		expectSendBookmarkJob *[]*queueService.ImportBookmarkInput
+		expectedStatus        int
+		verifyResponse        func(t *testing.T, rec *httptest.ResponseRecorder)
 	}{
 		{
 			name: "success",

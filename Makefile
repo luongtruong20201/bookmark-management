@@ -1,11 +1,12 @@
-IMG_NAME=luongtruong20201/bookmark_service
+IMG_SERVICE_NAME=luongtruong20201/bookmark_service
+IMG_WORKER_NAME=luongtruong20201/bookmark_worker
 
 GIT_TAG := $(shell git describe --tags --exact-match 2>/dev/null)
 BRANCH := $(shell git rev-parse --abbrev-ref HEAD)
 
 COVERAGE_FOLDER=./coverage
 
-IMG_TAG := $(or $(GIT_TAG),$(BRANCH),dev)
+IMG_TAG := $(subst /,-,$(or $(GIT_TAG),$(BRANCH),dev))
 export IMG_TAG
 
 COVERAGE_EXCLUDE=mocks|main.go|test|infrastructure
@@ -36,9 +37,16 @@ swagger:
 redis:
 	docker run --name redis -p 6379:6379 redis:latest
 
-.PHONY: docker-build
-docker-build:
-	docker build -t $(IMG_NAME):$(IMG_TAG) .
+.PHONY: docker-build docker-build-service docker-build-worker
+docker-build: docker-build-service docker-build-worker
+
+.PHONY: docker-build-service
+docker-build-service:
+	docker build --target final-service -t $(IMG_SERVICE_NAME):$(IMG_TAG) -f Dockerfile .
+
+.PHONY: docker-build-worker
+docker-build-worker:
+	docker build --target final-worker -t ${IMG_WORKER_NAME}:$(IMG_TAG) -f Dockerfile .
 
 .PHONY: docker-release
 docker-release:
@@ -57,7 +65,7 @@ docker-test:
 	docker buildx build \
 		--build-arg COVERAGE_EXCLUDE="$(COVERAGE_EXCLUDE)" \
 		--target test \
-		-t $(IMG_NAME):$(IMG_TAG) \
+		-t $(IMG_SERVICE_NAME):$(IMG_TAG) \
 		--output $(COVERAGE_FOLDER) .
 	@total=$$(go tool cover -func=$(COVERAGE_FOLDER)/coverage.out | grep total: | awk '{print $$3}' | sed 's/%//'); \
 	if [ $$(echo "$$total < $(COVERAGE_THRESHOLD)" | bc -l) -eq 1 ]; then \
@@ -79,3 +87,15 @@ migrate:
 .PHONY: generate
 generate:
 	go generate ./...
+
+.PHONY: worker
+worker:
+	go run cmd/worker/main.go
+
+.PHONY: run-all
+run-all:
+	docker compose up
+
+.PHONY: clean
+clean:
+	docker compose down --volumes --remove-orphans

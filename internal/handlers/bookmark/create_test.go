@@ -12,8 +12,8 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	model "github.com/luongtruong20201/bookmark-management/internal/models"
 	service "github.com/luongtruong20201/bookmark-management/internal/services/bookmark"
-	queueMocks "github.com/luongtruong20201/bookmark-management/internal/services/queue/mocks"
 	serviceMocks "github.com/luongtruong20201/bookmark-management/internal/services/bookmark/mocks"
+	queueMocks "github.com/luongtruong20201/bookmark-management/internal/services/queue/mocks"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -15,6 +15,7 @@ import (
 //go:generate mockery --name Service --filename bookmark.go
 type Service interface {
 	Create(ctx context.Context, description, url, userId string) (*model.Bookmark, error)
+	ImportBookmarks(ctx context.Context, userID string, items []*ImportBookmarkItem) error
 	GetBookmarks(ctx context.Context, userID string, offset, limit int) (*GetBookmarksResponse, error)
 	CountBookmarks(ctx context.Context, userID string) (int64, error)
 	Update(ctx context.Context, bookmarkID, userID, description, url string) (*model.Bookmark, error)
