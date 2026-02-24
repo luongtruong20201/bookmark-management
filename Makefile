@@ -50,7 +50,8 @@ docker-build-worker:
 
 .PHONY: docker-release
 docker-release:
-	docker push $(IMG_NAME):$(IMG_TAG)
+	docker push $(IMG_SERVICE_NAME):$(IMG_TAG)
+	docker push $(IMG_WORKER_NAME):$(IMG_TAG)
 
 DOCKER_USERNAME ?=
 DOCKER_PASSWORD ?=
